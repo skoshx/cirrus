@@ -1,0 +1,77 @@
+{
+  "name": "cirrus",
+  "version": "0.0.10",
+  "description": "Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Evan You's pod.",
+  "repository": "skoshx/cirrus",
+  "bin": {
+    "cirrus": "./dist/index.cli.mjs"
+  },
+  "main": "./dist/index.cjs",
+  "type": "module",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.cjs"
+  },
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.13"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "rimraf dist && rollup -c",
+    "prepublishOnly": "npm run build",
+    "prettier-check": "prettier --check .",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "prettier": {
+    "endOfLine": "lf",
+    "tabWidth": 2,
+    "printWidth": 80,
+    "singleQuote": true,
+    "trailingComma": "all"
+  },
+  "keywords": [
+    "push",
+    "deploy",
+    "deployment",
+    "cirrus",
+    "cloud",
+    "typescript",
+    "vps",
+    "cli"
+  ],
+  "devDependencies": {
+    "@rollup/plugin-json": "^4.1.0",
+    "@types/jest": "^27.4.0",
+    "@types/react": "^17.0.39",
+    "esbuild": "^0.14.18",
+    "jest": "^27.5.0",
+    "prettier": "2.4.0",
+    "rollup": "^2.67.0",
+    "rollup-plugin-dts": "^4.1.0",
+    "rollup-plugin-esbuild": "^4.8.2",
+    "rollup-plugin-preserve-shebang": "^1.0.1",
+    "ts-jest": "^27.1.3",
+    "typescript": "4.4.2"
+  },
+  "dependencies": {
+    "cli-spinners": "^2.6.1",
+    "ink": "^3.2.0",
+    "meow": "^10.1.2",
+    "ms": "3.0.0-canary.1",
+    "pm2": "^5.2.0",
+    "react": "^17.0.2",
+    "rimraf": "^3.0.2"
+  }
+}
