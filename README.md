@@ -14,7 +14,7 @@ Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Eva
 </div>
 
 <p align="center">
-<img src="docs/carbon.png" width="688" />
+<img src="docs/carbon-improved.png" width="688" />
 </p>
 
 ## Install
