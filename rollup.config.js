@@ -25,7 +25,7 @@ export default [
         file: `${name}.cli.mjs`,
         format: 'esm',
         sourcemap: true,
-        banner: '#!/usr/bin/env node'
+        banner: '#!/usr/bin/env node',
       },
     ],
   }),
@@ -39,7 +39,12 @@ export default [
         format: 'esm',
         sourcemap: true,
       },
-    ]
+      {
+        file: `${name}.cjs`,
+        format: 'cjs',
+        sourcemap: true,
+      },
+    ],
   },
   {
     input: './src/index.ts',
@@ -50,7 +55,7 @@ export default [
         file: `${name}.d.ts`,
         format: 'esm',
       },
-    ]
+    ],
   },
   /* bundle({
     plugins: [dts()],

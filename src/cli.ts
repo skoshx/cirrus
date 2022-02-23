@@ -1,19 +1,28 @@
-// Shebang with ES modules… https://stackoverflow.com/questions/48179714/how-can-an-es6-module-be-run-as-a-script-in-node
-
-import { render } from 'ink';
 import meow, { Result } from 'meow';
-import { createApp, defaultOptions, getApp, getLogs, listApps, ready, removeApp, startApp, stopApp } from '.';
-import { renderList, Table } from './ink/list';
+import {
+  createApp,
+  getApp,
+  getLogPath,
+  getLogs,
+  listApps,
+  ready,
+  removeApp,
+  startApp,
+  stopApp,
+} from '.';
+import pm2 from 'pm2';
+import { renderList } from './ink/list';
 import { renderLogs } from './ink/logs';
-import { log, logError } from './logger';
+import { logError } from './logger';
 import { join } from 'path';
 import { getDefaultEnvironment, tryCatch } from './util';
 
 // TODO: Use Yargs instead…
 
-const cli = meow(`
+const cli = meow(
+  `
   🌧  Usage
-	  $ cirrus [command]
+	$ cirrus [command]
 
 	Commands
     create <app>            Create a new app
@@ -22,6 +31,7 @@ const cli = meow(`
     start <app>             Start an app monitored by pm2
     stop <app>              Stop an app
     restart <app>           Restart an app that's already running
+    info <app>              Shows detailed information about an app
     list                    List apps and status
     startall                Start all apps not already running
     stopall                 Stop all apps
@@ -33,70 +43,50 @@ const cli = meow(`
 
 	Examples
 	  $ cirrus create my-app
-    $ cirrus create my-remote-app https://github.com/skoshx/cirrus
-`, {
-	importMeta: import.meta,
-	flags: {
-		rainbow: {
-			type: 'boolean',
-			alias: 'r'
-		}
-	}
-});
+    $ cirrus create my-remote-app https://github.com/skoshx/cirrus`,
+  {
+    importMeta: import.meta,
+    flags: {
+      rainbow: {
+        type: 'boolean',
+        alias: 'r',
+      },
+    },
+  },
+);
 
-if (cli.input.length === 0) {
-  cli.showHelp();
-}
+if (cli.input.length === 0) cli.showHelp();
 
 async function handleCliOptions(cli: Result<any>) {
   // Wait for Cirrus to warm up…
   await ready();
 
   if (cli.input[0] === 'create') {
-    const { data, error } = await tryCatch(createApp(cli.input[1], {
-      port: 8080,
-      env: getDefaultEnvironment(),
-      appName: cli.input[1],
-      logFile: join(process.cwd(), 'log.txt'),
-      errorFile: join(process.cwd(), 'error.txt')
-    }));
-
-    // TODO:
-    // logFile: `$HOME/.pm2/logs/XXX-err.log`
-    // logFile: `${os.homedir()/.pm2/logs/${cli.input[1]}-err.log}`
+    const { error } = await tryCatch(
+      createApp(cli.input[1], {
+        port: 8080,
+        env: getDefaultEnvironment(),
+        appName: cli.input[1],
+        logFile: join(getLogPath(cli.input[1]), `${cli.input[1]}.log`),
+        errorFile: join(getLogPath(cli.input[1]), `${cli.input[1]}-err.log`),
+      }),
+    );
 
     if (error) return logError(error);
 
-    // TODO: Rendering here…
-
-    /* log(`Your app has been created.`);
-    console.log("App options:"); 
-    console.log(data); */
-
     if (await listApps()) renderList(await listApps());
-
-    // process.exit(0);
-
-    /* const x = await createApp(cli.input[1], { port: 8080, env: getDefaultEnvironment(), appName: cli.input[1] });
-    if (!x) */
-    /* console.log("X: ");
-    console.log(x); */
   }
 
   if (cli.input[0] === 'remove') {
-    const { data, error } = await tryCatch(removeApp(cli.input[1]));
+    const { error } = await tryCatch(removeApp(cli.input[1]));
     if (error) return logError(error);
-    console.log("DATA: ");
-    console.log(data);
-
     if (await listApps()) renderList(await listApps());
   }
 
   if (cli.input[0] === 'start') {
-    const { data, error } = await tryCatch(startApp(cli.input[1], { port: 8080, env: getDefaultEnvironment(), appName: cli.input[1], logFile: `${process.cwd()}/log.txt`, errorFile: `${process.cwd()}/erorr.txt` }));
-
-    console.log("DATA:");
-    console.log(data);
+    // TODO: here add support for providing same flags as create,
+    // but update app instead, then start.
+    const { error } = await tryCatch(startApp(cli.input[1]));
 
     if (error) return logError(error);
 
@@ -107,6 +97,18 @@ async function handleCliOptions(cli: Result<any>) {
     const { error } = await tryCatch(stopApp(cli.input[1]));
 
     if (error) return logError(error);
+
+    if (await listApps()) renderList(await listApps());
+  }
+
+  if (cli.input[0] === 'restart') {
+    const { error } = await tryCatch(stopApp(cli.input[1]));
+    if (error) return logError(error);
+
+    const { error: startError } = await tryCatch(
+      startApp(cli.input[1], getApp(cli.input[1])),
+    );
+    if (startError) return logError(startError);
 
     if (await listApps()) renderList(await listApps());
   }
@@ -127,6 +129,9 @@ async function handleCliOptions(cli: Result<any>) {
 
     if (data) renderLogs(data, app);
   }
+
+  // Drop daemon
+  pm2.disconnect();
 }
 
 handleCliOptions(cli);
