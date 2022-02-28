@@ -9,7 +9,7 @@
 // Firewalls
 
 import { env } from 'process';
-import { homedir } from 'os';
+import { homedir, userInfo } from 'os';
 import { writeFileSync, readFileSync, mkdirSync, chmodSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -17,6 +17,7 @@ import { exec as execSync } from 'child_process';
 import { promisify } from 'util';
 const exec = promisify(execSync);
 import pm2, { Proc, ProcessDescription, StartOptions } from 'pm2';
+import publicIp from 'public-ip';
 
 import { getDefaultEnvironment, tryCatch } from './util';
 import { log, logError, LogLevels } from './logger';
@@ -163,6 +164,13 @@ export interface AppInfo {
   memory?: number;
   uptime: number;
   status?: ProcessStatus;
+
+  remote: string;
+  env: string;
+  script?: string;
+  instances?: number;
+  errorFile: string;
+  logFile: string;
 }
 
 export interface AppLogs {
@@ -171,12 +179,21 @@ export interface AppLogs {
   log: string[];
 }
 
+export type PartialAppInfo = Omit<
+  AppInfo,
+  'remote' | 'env' | 'script' | 'instances' | 'errorFile' | 'logFile'
+>;
+
 export async function listApps(): Promise<AppInfo[]> {
   const pm2Apps = await listPm2Apps();
+  const externalIp = await publicIp.v4();
   return globalOptions.apps.map((app: AppOptionsType) => {
     const pm2App = pm2Apps.filter(
-      (pm2App: AppInfo) => pm2App.appName === app.appName,
+      (pm2App: PartialAppInfo) => pm2App.appName === app.appName,
     )?.[0];
+    const env = Object.entries(app.env ?? {})
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n');
     return {
       appName: app.appName,
       port: app.port,
@@ -184,18 +201,34 @@ export async function listApps(): Promise<AppInfo[]> {
       memory: pm2App?.memory,
       uptime: pm2App?.uptime ?? 0,
       status: pm2App?.status,
+
+      remote: app.remote
+        ? app.remote
+        : `ssh://${userInfo().username}@${externalIp}/${getRepoPath(
+            app.appName,
+          )}`,
+      env,
+      script: app.script,
+      instances: app.instances,
+      errorFile: app.errorFile,
+      logFile: app.logFile,
     };
   });
 }
 
-export async function getLogs(app: AppOptionsType): Promise<AppLogs> {
-  app = AppOptions.parse(app);
-  const error = readFileSync(app.errorFile)?.toString('utf-8')?.split('\n');
-  const log = readFileSync(app.logFile)?.toString('utf-8')?.split('\n');
-  return { appName: app.appName, error, log };
+export async function getLogs(appName: string): Promise<AppLogs> {
+  const app = getApp(appName);
+  if (!app) throw Error(`Could not find app with name ${appName}`);
+  const { data: error } = await tryCatch(() =>
+    readFileSync(app.errorFile)?.toString('utf-8')?.split('\n'),
+  );
+  const { data: log } = await tryCatch(() =>
+    readFileSync(app.logFile)?.toString('utf-8')?.split('\n'),
+  );
+  return { appName: app.appName, error: error ?? [], log: log ?? [] };
 }
 
-export async function listPm2Apps(): Promise<AppInfo[]> {
+export async function listPm2Apps(): Promise<PartialAppInfo[]> {
   return new Promise((resolve, reject) => {
     pm2.list((err: Error, procList: ProcessDescription[]) => {
       if (err) reject(err);

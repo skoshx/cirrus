@@ -9,10 +9,10 @@ import { AppOptionsType } from '../types';
 
 export const Logs = ({
   logs: appLogs,
-  app,
+  appName,
 }: {
   logs: AppLogs;
-  app: AppOptionsType;
+  appName: string;
 }) => {
   const [logs, setLogs] = useState<AppLogs>(appLogs);
 
@@ -22,7 +22,7 @@ export const Logs = ({
 
   useEffect(() => {
     const timer = setInterval(async () => {
-      const logs = await getLogs(app);
+      const logs = await getLogs(appName);
       setLogs(logs ?? appLogs);
     }, 1000);
 
@@ -39,16 +39,27 @@ export const Logs = ({
         {' '}
         &#127783; Cirrus<Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
-      <Text color={'cyanBright'} bold>
-        Logs for {logs.appName}
-      </Text>
-      <Box borderColor={'gray'} paddingTop={1}>
-        {logs.log.slice(-5).map((log: string) => (
+
+      <Box paddingTop={1} paddingBottom={1} flexDirection="column">
+        <Text color={'redBright'} bold>
+          Error logs
+        </Text>
+        {logs.error.length === 0 ? (
+          <Text color={'gray'}>No error logs found</Text>
+        ) : null}
+        {logs.error.slice(-5).map((log: string) => (
           <Text color={'gray'}>{log}</Text>
         ))}
       </Box>
-      <Box borderColor={'redBright'} paddingTop={1}>
-        {logs.error.slice(-5).map((log: string) => (
+
+      <Box paddingTop={1} paddingBottom={1} flexDirection="column">
+        <Text color={'cyan'} bold>
+          Logs
+        </Text>
+        {logs.log.length === 0 ? (
+          <Text color={'gray'}>No logs found</Text>
+        ) : null}
+        {logs.log.slice(-5).map((log: string) => (
           <Text color={'gray'}>{log}</Text>
         ))}
       </Box>
@@ -56,6 +67,6 @@ export const Logs = ({
   );
 };
 
-export function renderLogs(logs: AppLogs, app: AppOptionsType) {
-  render(<Logs logs={logs} app={app} />);
+export function renderLogs(logs: AppLogs, appName: string) {
+  render(<Logs logs={logs} appName={appName} />);
 }

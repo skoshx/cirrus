@@ -4,6 +4,7 @@ import {
   getApp,
   getLogPath,
   getLogs,
+  getRepoPath,
   listApps,
   ready,
   removeApp,
@@ -16,6 +17,10 @@ import { renderLogs } from './ink/logs';
 import { logError } from './logger';
 import { join } from 'path';
 import { getDefaultEnvironment, tryCatch } from './util';
+import { renderInfo } from './ink/info';
+import publicIp from 'public-ip';
+import { userInfo } from 'os';
+import { AppInfo } from '../dist';
 
 // TODO: Use Yargs instead…
 
@@ -42,7 +47,7 @@ const cli = meow(
     help                    You are reading it right now
 
 	Examples
-	  $ cirrus create my-app
+    $ cirrus create my-app
     $ cirrus create my-remote-app https://github.com/skoshx/cirrus`,
   {
     importMeta: import.meta,
@@ -121,13 +126,38 @@ async function handleCliOptions(cli: Result<any>) {
     if (data) renderList(data);
   }
 
-  if (cli.input[0] === 'logs') {
-    const app = getApp(cli.input[1]);
-    const { data, error } = await tryCatch(getLogs(app));
+  if (cli.input[0] === 'info') {
+    const { data, error } = await tryCatch(listApps());
 
     if (error) return logError(error);
 
-    if (data) renderLogs(data, app);
+    const appInfo = data?.filter(
+      (app: AppInfo) => app.appName === cli.input[1],
+    )?.[0];
+
+    if (!appInfo)
+      return logError(
+        new Error(`Could not find app with name ${cli.input[1]}`),
+      );
+
+    /* const app = getApp(cli.input[1]);
+
+    const externalIp = await publicIp.v4();
+
+    const env = Object.entries(app.env ?? {}).map(([key, value]) => `${key}=${value}`).join('\n'); */
+    renderInfo(appInfo);
+
+    // @ts-ignore
+    // renderInfo({ ...app, env, remote: app.remote ? app.remote : `ssh://${userInfo().username}@${externalIp}${getRepoPath(app.appName)}`, });
+  }
+
+  if (cli.input[0] === 'logs') {
+    // const app = getApp(cli.input[1]);
+    const { data, error } = await tryCatch(getLogs(cli.input[1]));
+
+    if (error) return logError(error);
+
+    if (data) renderLogs(data, cli.input[1]);
   }
 
   // Drop daemon
