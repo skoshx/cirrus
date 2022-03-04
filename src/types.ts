@@ -5,7 +5,7 @@ export const AppOptions = z.object({
   port: z.number(),
   errorFile: z.string(),
   logFile: z.string(),
-  script: z.string().default('build/index.js').optional(),
+  script: z.string().default('build/index.js'),
   env: z.object({}).catchall(z.string()).optional(),
   instances: z.number().optional(),
   remote: z

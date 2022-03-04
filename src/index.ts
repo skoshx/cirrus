@@ -19,7 +19,7 @@ const exec = promisify(execSync);
 import pm2, { Proc, ProcessDescription, StartOptions } from 'pm2';
 import publicIp from 'public-ip';
 
-import { getDefaultEnvironment, tryCatch } from './util';
+import { getDefaultGlobalEnvironment, tryCatch } from './util';
 import { log, logError, LogLevels } from './logger';
 import {
   AppOptions,
@@ -37,7 +37,7 @@ async function connectToPm2() {
 export const defaultOptions: PushOptionsType = {
   root:
     process.env.CIRRUS_CONF ?? join(process.env.HOME ?? homedir(), 'cirrus'),
-  env: getDefaultEnvironment(),
+  env: getDefaultGlobalEnvironment(),
   minUptime: 3600000,
   maxRestarts: 10,
   apps: [],
@@ -59,6 +59,8 @@ export const getApp = (appName: string | undefined) =>
   globalOptions.apps.filter(
     (app: AppOptionsType) => app.appName === appName,
   )?.[0];
+
+export const getProcessApp = async (appName: string | undefined) => (await listPm2Apps()).filter((app: PartialAppInfo) => app.appName === appName)?.[0];
 
 // Do setup…
 // TODO: Setup with different options, we can automatically setup postgres
@@ -87,15 +89,22 @@ export async function createApp(
 }
 
 export async function startApp(appName: string, options?: AppOptionsType) {
-  options = AppOptions.parse(options);
+  if (options) options = AppOptions.parse(options);
   return new Promise((resolve, reject) => {
     const app = getApp(appName);
     if (!app) reject(`App with name ${appName} does not exist.`);
 
+    console.log("environment : ");
+    console.log({
+      ...globalOptions.env,
+      ...app.env,
+      ...options?.env,
+    });
+
     const processOptions: StartOptions = {
       name: appName,
       // script: 'npm',
-      script: `${join(getWorkPath(appName), app.script as string)}`,
+      script: `${join(getWorkPath(appName), app.script)}`,
       // args: 'start',
       min_uptime: globalOptions.minUptime,
       max_restarts: globalOptions.maxRestarts,
@@ -137,9 +146,12 @@ export async function removeApp(appName: string) {
 }
 
 export async function stopApp(appName: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (!getApp(appName))
       return log(`App with name ${appName} does not exist.`, LogLevels.WARNING);
+    
+    const app = await getProcessApp(appName);
+    if (!app) resolve(null);
 
     pm2.stop(appName, (err: Error, proc: Proc) => {
       if (err) reject(err);
@@ -186,6 +198,7 @@ export type PartialAppInfo = Omit<
 
 export async function listApps(): Promise<AppInfo[]> {
   const pm2Apps = await listPm2Apps();
+  // TODO: move these out of here…
   const externalIp = await publicIp.v4();
   return globalOptions.apps.map((app: AppOptionsType) => {
     const pm2App = pm2Apps.filter(
@@ -204,7 +217,7 @@ export async function listApps(): Promise<AppInfo[]> {
 
       remote: app.remote
         ? app.remote
-        : `ssh://${userInfo().username}@${externalIp}/${getRepoPath(
+        : `ssh://${userInfo().username}@${externalIp}${getRepoPath(
             app.appName,
           )}`,
       env,

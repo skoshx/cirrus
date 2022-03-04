@@ -1,7 +1,7 @@
 // const React = require('react');
 // const Chance = require('chance');
 import React, { useEffect, useState } from 'react';
-import { render, Box, Text, useApp, useInput } from 'ink';
+import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { AppInfo, AppLogs, getLogs, listApps } from '..';
 import { cpu, memory, statusToColor, time } from '../formatting';
@@ -15,8 +15,9 @@ export const Logs = ({
   appName: string;
 }) => {
   const [logs, setLogs] = useState<AppLogs>(appLogs);
+  const { isRawModeSupported } = useStdin();
 
-  useInput((input) => {
+  isRawModeSupported && useInput((input) => {
     if (input === 'q') process.exit(0);
   });
 
@@ -37,7 +38,7 @@ export const Logs = ({
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783; Cirrus<Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783;  Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
 
       <Box paddingTop={1} paddingBottom={1} flexDirection="column">
@@ -47,8 +48,8 @@ export const Logs = ({
         {logs.error.length === 0 ? (
           <Text color={'gray'}>No error logs found</Text>
         ) : null}
-        {logs.error.slice(-5).map((log: string) => (
-          <Text color={'gray'}>{log}</Text>
+        {logs.error.slice(-5).map((log: string, index: number) => (
+          <Text color={'gray'} key={log + index}>{log}</Text>
         ))}
       </Box>
 
@@ -59,8 +60,8 @@ export const Logs = ({
         {logs.log.length === 0 ? (
           <Text color={'gray'}>No logs found</Text>
         ) : null}
-        {logs.log.slice(-5).map((log: string) => (
-          <Text color={'gray'}>{log}</Text>
+        {logs.log.slice(-5).map((log: string, index: number) => (
+          <Text color={'gray'} key={log + index}>{log}</Text>
         ))}
       </Box>
     </Box>

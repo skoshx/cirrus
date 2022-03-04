@@ -1,7 +1,15 @@
 // Utils
 import { deepStrictEqual } from 'assert';
+import { AppOptionsType } from './types';
 
-export function getDefaultEnvironment() {
+export function getDefaultAppEnvironment(app: AppOptionsType) {
+  return {
+    ...getDefaultGlobalEnvironment(),
+    PORT: app.port
+  };
+}
+
+export function getDefaultGlobalEnvironment() {
   return {
     NODE_ENV: 'production',
   };

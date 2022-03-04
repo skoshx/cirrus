@@ -1,7 +1,7 @@
 // const React = require('react');
 // const Chance = require('chance');
 import React, { useEffect, useState } from 'react';
-import { render, Box, Text, useApp, useInput } from 'ink';
+import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { AppInfo, listApps } from '..';
 import { cpu, memory, statusToColor, time } from '../formatting';
@@ -9,16 +9,16 @@ import { cpu, memory, statusToColor, time } from '../formatting';
 export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
   const [infos, setInfos] = useState<AppInfo[]>([]);
 
+  const { isRawModeSupported } = useStdin();
+
+  isRawModeSupported && useInput((input) => {
+    if (input === 'q') process.exit(0);
+  });
+
   const widthFromColumns = (info: AppInfo) =>
     `${1 / Object.keys(infos[0] ?? {}).length}%`;
 
   const fixedWidth = '16%';
-
-  useInput((input, key) => {
-    if (input === 'q') {
-      process.exit(0);
-    }
-  });
 
   useEffect(() => {
     const timer = setInterval(async () => {
@@ -37,7 +37,7 @@ export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783; Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783;  Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
       <Box justifyContent={'space-between'} paddingTop={1}>
         <Box width={fixedWidth}>

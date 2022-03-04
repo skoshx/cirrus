@@ -16,13 +16,9 @@ import { renderList } from './ink/list';
 import { renderLogs } from './ink/logs';
 import { logError } from './logger';
 import { join } from 'path';
-import { getDefaultEnvironment, tryCatch } from './util';
+import { getDefaultGlobalEnvironment, tryCatch } from './util';
 import { renderInfo } from './ink/info';
-import publicIp from 'public-ip';
-import { userInfo } from 'os';
 import { AppInfo } from '../dist';
-
-// TODO: Use Yargs instead…
 
 const cli = meow(
   `
@@ -70,7 +66,11 @@ async function handleCliOptions(cli: Result<any>) {
     const { error } = await tryCatch(
       createApp(cli.input[1], {
         port: 8080,
-        env: getDefaultEnvironment(),
+        env: {
+          ...getDefaultGlobalEnvironment(),
+          PORT: (8080).toString()
+        },
+        script: 'build/index.js', // SvelteKit default ;)
         appName: cli.input[1],
         logFile: join(getLogPath(cli.input[1]), `${cli.input[1]}.log`),
         errorFile: join(getLogPath(cli.input[1]), `${cli.input[1]}-err.log`),
@@ -130,15 +130,10 @@ async function handleCliOptions(cli: Result<any>) {
     const { data, error } = await tryCatch(listApps());
 
     if (error) return logError(error);
+    
+    const appInfo = data?.filter((app: AppInfo) => app.appName === cli.input[1])?.[0];
 
-    const appInfo = data?.filter(
-      (app: AppInfo) => app.appName === cli.input[1],
-    )?.[0];
-
-    if (!appInfo)
-      return logError(
-        new Error(`Could not find app with name ${cli.input[1]}`),
-      );
+    if (!appInfo) return logError(new Error(`Could not find app with name ${cli.input[1]}`));
 
     /* const app = getApp(cli.input[1]);
 
@@ -148,7 +143,7 @@ async function handleCliOptions(cli: Result<any>) {
     renderInfo(appInfo);
 
     // @ts-ignore
-    // renderInfo({ ...app, env, remote: app.remote ? app.remote : `ssh://${userInfo().username}@${externalIp}${getRepoPath(app.appName)}`, });
+    // renderInfo({ ...app, env, remote: app.remote ? app.remote : `ssh://${userInfo().username}@${externalIp}${getRepoPath(app.appName)}`, });    
   }
 
   if (cli.input[0] === 'logs') {
