@@ -3,7 +3,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "module": "es2020",
+    "module": "ES2020",
     "resolveJsonModule": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,

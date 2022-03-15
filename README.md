@@ -11,6 +11,7 @@ Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Eva
 [![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/facebook/jest)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/skoshx/cirrus/blob/main/CONTRIBUTING.md#pull-requests)
 
+
 </div>
 
 <p align="center">
@@ -23,9 +24,42 @@ Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Eva
 $ yarn global add cirrus
 ```
 
+## Features
+
+- Monorepo support out of the box
+- Plugins
+
 ## Usage
 
-**TODO: Write usage docs**
+First, log in to your Virtual Private Server [DigitalOcean offers VPS' for a great price.](https://m.do.co/c/c8178a5d5ec6)
+```bash
+$ ssh root@<ip>
+```
+
+Install Node.js
+```bash
+$ 
+```
+
+Install Cirrus
+```bash
+$ npm install -g cirrus
+```
+
+Setup Cirrus. This step sets up necessary firewalls etc.
+```bash
+$ cirrus setup
+```
+
+Create an app.
+```bash
+$ cirrus create my-app --port 3000 <options>
+```
+
+Then, on your local machine:
+```bash
+$ git remote add deploy https://<your vps ip>/
+```
 
 ## Docs
 
@@ -51,7 +85,14 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## TODO
 
-- Tests
+- Monorepo support…
+  - Every "app" is a list of apps (AppOptions[]).
+  - Every AppOptions definition has their own env, commands etc…
 - Plugins
-- Automatic Caddy server configuration
-- Automatic Postgres configuration
+  - Plugins work in such a way: Plugins are ever-present, passed to all functions `create`, `delete`, `createHook`, and then the plugin is called after all transformations are made…
+- Tests
+- Automatic Caddy server configuration --> Implement as a plugin…
+- Automatic Postgres configuration --> Implement as a plugin
+- Firewall setup --> Implement as a plugin
+
+[![DigitalOcean Referral Badge](https://web-platforms.sfo2.digitaloceanspaces.com/WWW/Badge%202.svg)](https://www.digitalocean.com/?refcode=c8178a5d5ec6&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)

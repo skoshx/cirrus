@@ -10,19 +10,7 @@ LAST_COMMIT=`git log -1 | awk 'NR==1 {print $2}'`
 git fetch --all
 git reset --hard origin/main
 
-# if has .cirrushook, execute that; otherwise default
-if [ -f .cirrushook ]; then
-	bash .cirrushook
-	rc=$?
-	if [[ $rc != 0 ]]; then
-		echo "`tput setaf 1`ERROR: .podhook exited with code $rc, working tree is reverted.`tput sgr0`"
-		git reset $LAST_COMMIT --hard
-		exit $rc
-	fi
-elif [ -f package.json ]; then
-	npm install
-  npm run build
-fi
+{{commands}}
 
 cirrus stop {{app}}
 cirrus start {{app}}

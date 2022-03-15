@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
-import { AppInfo, listApps } from '..';
 import { cpu, memory, statusToColor, time } from '../formatting';
+import { AppInfo, listApps } from '../process';
 
 export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
   const [infos, setInfos] = useState<AppInfo[]>([]);

@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
-import { AppInfo, AppLogs, getLogs, listApps } from '..';
 import { cpu, memory, statusToColor, time } from '../formatting';
 import { AppOptionsType } from '../types';
+import { AppLogs, getLogs } from '../process';
 
 export const Logs = ({
   logs: appLogs,

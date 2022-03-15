@@ -1,6 +1,5 @@
 import anyTest, { ExecutionContext, TestFn } from "ava";
 import { createApp } from "../src/create";
-import { getAvailablePort } from "../src/util";
 import { setupTestSuite, TestSuiteType } from './_helper';
 
 const test = anyTest as TestFn<TestSuiteType>;
@@ -11,8 +10,13 @@ const before = async (t: ExecutionContext<TestSuiteType>) => {
 
 setupTestSuite(test, before);
 
-test('util > port', async (t) => {
-  const port = getAvailablePort();
-  t.is(port, 3001);
-  t.throws(() => getAvailablePort(t.context.app[0].port));
-});
+test.todo('remove > stop app');
+
+/*test('remove > stop app', async (t) => {
+  const app = await stopApp('test');
+  // todo: creates repository unit tests…
+  console.log("stop app: ");
+  console.log(app);
+  t.fail();
+  // t.snapshot(app);
+});*/

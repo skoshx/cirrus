@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
-import { AppInfo, listApps } from '..';
 import { cpu, memory, statusToColor, time } from '../formatting';
+import { AppInfo } from '../process';
 
 export interface InfoTableType {
   port: number;

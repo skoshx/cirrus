@@ -1,18 +1,25 @@
 // Utils
 import { deepStrictEqual } from 'assert';
-import { AppOptionsType } from './types';
+import { AppOptionsType, PushOptions, PushOptionsType } from './types';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { AppInfo, getGlobalOptions, listApps } from './process';
+import { join } from 'path';
+import { defaultOptions } from './defaults';
 
-export function getDefaultAppEnvironment(app: AppOptionsType) {
-  return {
-    ...getDefaultGlobalEnvironment(),
-    PORT: app.port
-  };
+export async function isPortAvailable(port: number) {
+  const takenPorts = [];
+  const options = getGlobalOptions();
+  for (const [, value] of Object.entries(options.apps)) {
+    takenPorts.push(...value.map((app) => app.port));
+  }
+  return takenPorts.includes(port);
 }
 
-export function getDefaultGlobalEnvironment() {
-  return {
-    NODE_ENV: 'production',
-  };
+export async function getAvailablePort(port?: number): Promise<number> {
+  if (port && !isPortAvailable(port)) throw Error(`Cannot use port ${port}, as it is used by another app.`);
+  port = 3000;
+  while (!isPortAvailable(port)) port++;
+  return port;
 }
 
 export interface TryCatchResponse<T = unknown> {
@@ -45,21 +52,42 @@ export async function tryCatch<T = unknown>(
     return { data: null, error };
   }
 }
+export function tryCatchSync<T = unknown>(fn: () => T): TryCatchResponse<T> {
+  try {
+    return { data: fn(), error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+export const clone = (obj: any) => JSON.parse(JSON.stringify(obj));
 
 // Use NodeJS built in functionality for checking value equality
 export async function deepEqual(a: any, b: any) {
-  const { error } = await tryCatch(() => deepStrictEqual(a, b));
+  const { error } = tryCatchSync(() => deepStrictEqual(a, b));
   return error === null;
 }
 
-// fix title if it has spaces
-export const checkTitle = (title?: string) => title?.replace(' ', '');
+export function saveConfig(config: PushOptionsType) {
+  config = PushOptions.parse(config);
+  mkdirSync(config.root, { recursive: true });
+  writeFileSync(
+    join(config.root, '.cirrusrc'),
+    JSON.stringify(config, null, 2),
+  );
+}
 
-export const clone = (a: any) => JSON.parse(JSON.stringify(a));
+export function getConfig(
+  configPath: string = defaultOptions.root,
+): PushOptionsType {
+  if (!configPath) throw Error(`Called getConfig() without initializing Cirrus. Please call initCirrus() before using any Cirrus functions.`);
+  const { data } = tryCatchSync(() => readFileSync(join(configPath, '.cirrusrc'), 'utf-8'));
+  return data ? JSON.parse(data) : { ...defaultOptions, root: configPath };
+}
 
-export const camelCase = (input: string) =>
-  input
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
-      index === 0 ? word.toLowerCase() : word.toUpperCase(),
-    )
-    .replace(/\s+/g, '');
+export const getWorkPath = (appName: string) =>
+  join(getGlobalOptions().root, 'apps', appName);
+export const getRepoPath = (appName: string) =>
+  join(getGlobalOptions().root, 'repos', appName + '.git');
+export const getLogPath = (appName: string) =>
+  join(getGlobalOptions().root, 'logs', appName);

@@ -1,6 +1,5 @@
 import ms from 'ms';
-import { ProcessStatus } from '.';
-import { ForegroundColor } from 'chalk';
+import { ProcessStatus } from './process';
 
 export const time = (time: number) => ms(time, { long: true });
 
@@ -10,30 +9,6 @@ export const memory = (memory: number) =>
     : (memory / 1024).toFixed(2) + ' kb';
 
 export const cpu = (cpu: number) => cpu.toFixed(2) + '%';
-
-/*
-
-declare type ForegroundColor =
-	| 'black'
-	| 'red'
-	| 'green'
-	| 'yellow'
-	| 'blue'
-	| 'magenta'
-	| 'cyan'
-	| 'white'
-	| 'gray'
-	| 'grey'
-	| 'blackBright'
-	| 'redBright'
-	| 'greenBright'
-	| 'yellowBright'
-	| 'blueBright'
-	| 'magentaBright'
-	| 'cyanBright'
-	| 'whiteBright';
-
-*/
 
 export const statusToColor = (status: ProcessStatus) => {
   if (status === 'errored') return 'redBright';
