@@ -1,7 +1,7 @@
-import anyTest, { ExecutionContext, TestFn } from "ava";
-import { createHook } from "../dist/index";
+import anyTest, { ExecutionContext, TestFn } from 'ava';
+import { createHook } from '../dist/index';
 import { setupTestSuite, TestSuiteType, __testDirname } from './_helper';
-import { join } from "path";
+import { join } from 'path';
 
 const test = anyTest as TestFn<TestSuiteType>;
 
@@ -19,6 +19,7 @@ LAST_COMMIT=\`git log -1 | awk 'NR==1 {print $2}'\`
 git fetch --all
 git reset --hard origin/main
 
+cd ./ || exit 1
 npm install || exit 1
 npm run build || exit 1
 

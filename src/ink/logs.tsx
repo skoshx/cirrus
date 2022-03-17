@@ -17,9 +17,10 @@ export const Logs = ({
   const [logs, setLogs] = useState<AppLogs>(appLogs);
   const { isRawModeSupported } = useStdin();
 
-  isRawModeSupported && useInput((input) => {
-    if (input === 'q') process.exit(0);
-  });
+  isRawModeSupported &&
+    useInput((input) => {
+      if (input === 'q') process.exit(0);
+    });
 
   useEffect(() => {
     const timer = setInterval(async () => {
@@ -38,7 +39,7 @@ export const Logs = ({
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783;  Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783; Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
 
       <Box paddingTop={1} paddingBottom={1} flexDirection="column">
@@ -49,7 +50,9 @@ export const Logs = ({
           <Text color={'gray'}>No error logs found</Text>
         ) : null}
         {logs.error.slice(-5).map((log: string, index: number) => (
-          <Text color={'gray'} key={log + index}>{log}</Text>
+          <Text color={'gray'} key={log + index}>
+            {log}
+          </Text>
         ))}
       </Box>
 
@@ -61,7 +64,9 @@ export const Logs = ({
           <Text color={'gray'}>No logs found</Text>
         ) : null}
         {logs.log.slice(-5).map((log: string, index: number) => (
-          <Text color={'gray'} key={log + index}>{log}</Text>
+          <Text color={'gray'} key={log + index}>
+            {log}
+          </Text>
         ))}
       </Box>
     </Box>

@@ -8,7 +8,14 @@ import pm2, { Proc, ProcessDescription, StartOptions } from 'pm2';
 import publicIp from 'public-ip';
 import { AppOptions, AppOptionsType } from './types';
 import { getApp, getProcessApp } from './process';
-import { getConfig, getLogPath, getRepoPath, getWorkPath, saveConfig, tryCatch } from './util';
+import {
+  getConfig,
+  getLogPath,
+  getRepoPath,
+  getWorkPath,
+  saveConfig,
+  tryCatch,
+} from './util';
 import { log, LogLevels } from './logger';
 import { createHook } from './hooks';
 import { execa } from 'execa';
@@ -65,9 +72,9 @@ export async function removeApp(appName: string) {
 
 export async function stopApp(appName: string) {
   return new Promise(async (resolve, reject) => {
-    if (!await getApp(appName))
+    if (!(await getApp(appName)))
       return log(`App with name ${appName} does not exist.`, LogLevels.WARNING);
-    
+
     const app = await getProcessApp(appName);
     if (!app) resolve(null);
 

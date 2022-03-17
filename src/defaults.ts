@@ -1,11 +1,11 @@
-import { AppOptionsType, PushOptionsType } from "./types";
+import { AppOptionsType, PushOptionsType } from './types';
 import { homedir } from 'os';
 import { join } from 'path';
 
 export function getDefaultAppEnvironment(app: AppOptionsType) {
   return {
     ...getDefaultGlobalEnvironment(),
-    PORT: app.port
+    PORT: app.port,
   };
 }
 

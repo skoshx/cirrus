@@ -23,7 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "NODE_ENV=test CIRRUS_ROOT=`pwd` NODE_NO_WARNINGS=1 ava",
+    "test": "NODE_ENV=test CIRRUS_ROOT=`pwd`/test/cirrus NODE_NO_WARNINGS=1 ava",
     "build": "rimraf dist && rollup -c",
     "prepublishOnly": "npm run build",
     "prettier-check": "prettier --check .",
@@ -33,14 +33,14 @@
     "postinstall": "patch-package"
   },
   "ava": {
-		"extensions": {
-			"ts": "module"
-		},
-		"nodeArguments": [
-			"--loader=ts-node/esm",
-			"--experimental-specifier-resolution=node"
-		]
-	},
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
+      "--loader=ts-node/esm",
+      "--experimental-specifier-resolution=node"
+    ]
+  },
   "prettier": {
     "endOfLine": "lf",
     "tabWidth": 2,

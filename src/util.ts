@@ -6,7 +6,7 @@ import { AppInfo, getGlobalOptions, listApps } from './process';
 import { join } from 'path';
 import { defaultOptions } from './defaults';
 
-export async function isPortAvailable(port: number) {
+export function isPortTaken(port: number) {
   const takenPorts = [];
   const options = getGlobalOptions();
   for (const [, value] of Object.entries(options.apps)) {
@@ -15,10 +15,11 @@ export async function isPortAvailable(port: number) {
   return takenPorts.includes(port);
 }
 
-export async function getAvailablePort(port?: number): Promise<number> {
-  if (port && !isPortAvailable(port)) throw Error(`Cannot use port ${port}, as it is used by another app.`);
+export function getAvailablePort(port?: number): number {
+  if (port && isPortTaken(port))
+    throw Error(`Cannot use port ${port}, as it is used by another app.`);
   port = 3000;
-  while (!isPortAvailable(port)) port++;
+  while (isPortTaken(port)) port++;
   return port;
 }
 
@@ -80,9 +81,14 @@ export function saveConfig(config: PushOptionsType) {
 export function getConfig(
   configPath: string = defaultOptions.root,
 ): PushOptionsType {
-  if (!configPath) throw Error(`Called getConfig() without initializing Cirrus. Please call initCirrus() before using any Cirrus functions.`);
-  const { data } = tryCatchSync(() => readFileSync(join(configPath, '.cirrusrc'), 'utf-8'));
-  return data ? JSON.parse(data) : { ...defaultOptions, root: configPath };
+  const { data } = tryCatchSync(() =>
+    readFileSync(join(configPath, '.cirrusrc'), 'utf-8'),
+  );
+  if (!data)
+    throw Error(
+      '.cirrusrc file does not exist. Did you forget to call `initCirrus()`?',
+    );
+  return JSON.parse(data);
 }
 
 export const getWorkPath = (appName: string) =>

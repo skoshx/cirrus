@@ -11,7 +11,6 @@ Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Eva
 [![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/facebook/jest)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/skoshx/cirrus/blob/main/CONTRIBUTING.md#pull-requests)
 
-
 </div>
 
 <p align="center">
@@ -32,31 +31,37 @@ $ yarn global add cirrus
 ## Usage
 
 First, log in to your Virtual Private Server [DigitalOcean offers VPS' for a great price.](https://m.do.co/c/c8178a5d5ec6)
+
 ```bash
 $ ssh root@<ip>
 ```
 
 Install Node.js
+
 ```bash
-$ 
+$
 ```
 
 Install Cirrus
+
 ```bash
 $ npm install -g cirrus
 ```
 
 Setup Cirrus. This step sets up necessary firewalls etc.
+
 ```bash
 $ cirrus setup
 ```
 
 Create an app.
+
 ```bash
 $ cirrus create my-app --port 3000 <options>
 ```
 
 Then, on your local machine:
+
 ```bash
 $ git remote add deploy https://<your vps ip>/
 ```

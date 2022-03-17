@@ -11,7 +11,6 @@ export interface InfoTableType {
 }
 
 export const Table = ({ info }: { info: AppInfo }) => {
-
   /*
     port: z.number(),
   errorFile: z.string(),
@@ -25,9 +24,10 @@ export const Table = ({ info }: { info: AppInfo }) => {
 
   const { isRawModeSupported } = useStdin();
 
-  isRawModeSupported && useInput((input) => {
-    if (input === 'q') process.exit(0);
-  });
+  isRawModeSupported &&
+    useInput((input) => {
+      if (input === 'q') process.exit(0);
+    });
 
   return (
     <Box
@@ -38,28 +38,46 @@ export const Table = ({ info }: { info: AppInfo }) => {
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783;  Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783; Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
 
       <Box paddingTop={1} paddingBottom={1} flexDirection="column">
-        <Text color={'cyanBright'} bold>Environment</Text>
-        <Text color={'gray'} bold>{info.env}</Text>
+        <Text color={'cyanBright'} bold>
+          Environment
+        </Text>
+        <Text color={'gray'} bold>
+          {info.env}
+        </Text>
       </Box>
 
       <Box paddingBottom={1} flexDirection="column">
-        <Text color={'cyanBright'} bold>Remote</Text>
-        <Text color={'gray'} bold>{info.remote}</Text>
+        <Text color={'cyanBright'} bold>
+          Remote
+        </Text>
+        <Text color={'gray'} bold>
+          {info.remote}
+        </Text>
       </Box>
 
       <Box paddingBottom={1} flexDirection="column">
-        <Text color={'cyanBright'} bold>Port</Text>
-        <Text color={'gray'} bold>{info.port}</Text>
+        <Text color={'cyanBright'} bold>
+          Port
+        </Text>
+        <Text color={'gray'} bold>
+          {info.port}
+        </Text>
       </Box>
 
       <Box paddingBottom={1} flexDirection="column">
-        <Text color={'cyanBright'} bold>Logs</Text>
-        <Text color={'gray'} bold>{info.logFile}</Text>
-        <Text color={'gray'} bold>{info.errorFile}</Text>
+        <Text color={'cyanBright'} bold>
+          Logs
+        </Text>
+        <Text color={'gray'} bold>
+          {info.logFile}
+        </Text>
+        <Text color={'gray'} bold>
+          {info.errorFile}
+        </Text>
       </Box>
     </Box>
   );

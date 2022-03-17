@@ -11,9 +11,10 @@ export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
 
   const { isRawModeSupported } = useStdin();
 
-  isRawModeSupported && useInput((input) => {
-    if (input === 'q') process.exit(0);
-  });
+  isRawModeSupported &&
+    useInput((input) => {
+      if (input === 'q') process.exit(0);
+    });
 
   const widthFromColumns = (info: AppInfo) =>
     `${1 / Object.keys(infos[0] ?? {}).length}%`;
@@ -37,7 +38,7 @@ export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783;  Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783; Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
       <Box justifyContent={'space-between'} paddingTop={1}>
         <Box width={fixedWidth}>

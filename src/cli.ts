@@ -10,9 +10,10 @@ import { getAvailablePort, getLogPath, tryCatch } from './util';
 import { getDefaultGlobalEnvironment } from './defaults';
 import { getApp, getLogs, listApps, initCirrus, AppInfo } from './process';
 
-const create = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const create = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Create - allows you to create a cloud app either from a local repository or a GitHub remote.
 	$ cirrus create [options]
 
@@ -22,41 +23,45 @@ const create = (helpText: string, options: Options<any>) => meow({
     --remote, -r            Create an app from a GitHub remote
     --script, -s            Path to the start script. Defaults to 'build/index.js'
   `,
-  flags: {
-    port: { type: 'number', alias: 'p' },
-    environment: { type: 'string', alias: 'e' },
-    remote: { type: 'string', alias: 'r' },
-    script: { type: 'string', alias: 's' }
-  }
-});
+    flags: {
+      port: { type: 'number', alias: 'p' },
+      environment: { type: 'string', alias: 'e' },
+      remote: { type: 'string', alias: 'r' },
+      script: { type: 'string', alias: 's' },
+    },
+  });
 
-const remove = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const remove = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Remove - remove a Cirrus app
 	$ cirrus remove <app>
   `,
-});
+  });
 
-const stop = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const stop = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Stop - stop a Cirrus app
 	$ cirrus stop <app>
   `,
-});
+  });
 
-const info = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const info = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Info - show usable information about a Cirrus app
 	$ cirrus info <app>
   `,
-});
+  });
 
-const start = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const start = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Start - start a Cirrus app with optional flags
 	$ cirrus create [options]
 
@@ -64,31 +69,34 @@ const start = (helpText: string, options: Options<any>) => meow({
     --port, -p              Port to use for your app
     --environment, -e       Path to an .env file to source when creating app
   `,
-  flags: {
-    port: { type: 'number', alias: 'p' },
-    environment: { type: 'string', alias: 'e' },
-  }
-});
+    flags: {
+      port: { type: 'number', alias: 'p' },
+      environment: { type: 'string', alias: 'e' },
+    },
+  });
 
-const restart = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const restart = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Restart - Restart a Cirrus app
 	$ cirrus restart <app>
   `,
-});
+  });
 
-const list = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const list = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Cirrus 'list' usage
 	$ cirrus list <app>
   `,
-});
+  });
 
-const web = (helpText: string, options: Options<any>) => meow({
-  ...options,
-  help: `
+const web = (helpText: string, options: Options<any>) =>
+  meow({
+    ...options,
+    help: `
   🌧  Cirrus 'web' usage
 	$ cirrus web [options]
 
@@ -97,12 +105,12 @@ const web = (helpText: string, options: Options<any>) => meow({
     --start,                Start web service
     --stop,                 Stop web service
   `,
-  flags: {
-    port: { type: 'number', alias: 'p' },
-    start: { type: 'boolean' },
-    stop: { type: 'boolean' },
-  }
-});
+    flags: {
+      port: { type: 'number', alias: 'p' },
+      start: { type: 'boolean' },
+      stop: { type: 'boolean' },
+    },
+  });
 
 const cli = meow(
   `
@@ -130,7 +138,13 @@ const cli = meow(
     importMeta: import.meta,
     commands: {
       // @ts-ignore
-      create, remove, stop, start, restart, list, web
+      create,
+      /* remove,
+      stop,
+      start,
+      restart,
+      list,
+      web, */
     },
     flags: {
       rainbow: {
@@ -194,20 +208,25 @@ const subcommands: Record<string, any> = {
   info: async (cli: Result<any>) => {
     const { data, error } = await tryCatch(listApps());
     if (error) return logError(error);
-  
-    const appInfo = data?.filter((app: AppInfo) => app.appName === cli.input[0])?.[0];
-    if (!appInfo) return logError(new Error(`Could not find app with name ${cli.input[0]}`));
+
+    const appInfo = data?.filter(
+      (app: AppInfo) => app.appName === cli.input[0],
+    )?.[0];
+    if (!appInfo)
+      return logError(
+        new Error(`Could not find app with name ${cli.input[0]}`),
+      );
     renderInfo(appInfo);
   },
   logs: async (cli: Result<any>) => {
     const { data, error } = await tryCatch(getLogs(cli.input[0]));
     if (error) return logError(error);
     if (data) renderLogs(data, cli.input[0]);
-  }
-}
+  },
+};
 
 async function handleCli(cli: Result<any>) {
-  await initCirrus();
+  // await initCirrus();
 
   const command = Object.keys(cli.commands ?? {})?.[0];
   const subcommand = subcommands[command];

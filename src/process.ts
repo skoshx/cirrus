@@ -1,27 +1,23 @@
-import { AppOptionsType, PushOptionsType } from "./types";
+import { AppOptionsType, PushOptionsType } from './types';
 import pm2, { ProcessDescription } from 'pm2';
-import { getConfig, getRepoPath, tryCatch } from "./util";
-import publicIp from "public-ip";
+import { getConfig, getRepoPath, saveConfig, tryCatch } from './util';
+import publicIp from 'public-ip';
 import { userInfo, homedir } from 'os';
 import { readFileSync } from 'fs';
-import { defaultOptions } from "./defaults";
+import { defaultOptions } from './defaults';
 
 let globalOptions: PushOptionsType;
 
-export async function initCirrus(): Promise<PushOptionsType> {
+export async function initCirrus(
+  options: PushOptionsType,
+): Promise<PushOptionsType> {
+  saveConfig(options);
   await connectToPm2(); // Daemonize PM2
-  return globalOptions;
+  return getGlobalOptions();
 }
 
-export const getGlobalOptions = (configPath?: string): PushOptionsType => {
-  if (globalOptions) return globalOptions;
-  configPath = configPath ?? defaultOptions.root;
-  globalOptions = {
-    ...defaultOptions,
-    ...getConfig(configPath),
-  };
-  return globalOptions;
-};
+export const getGlobalOptions = (configPath?: string): PushOptionsType =>
+  getConfig(configPath);
 
 async function connectToPm2() {
   return new Promise((resolve) => {
@@ -29,9 +25,13 @@ async function connectToPm2() {
   });
 }
 
-export const getApp = (appName: string): AppOptionsType[] => getGlobalOptions().apps[appName] ?? null;
+export const getApp = (appName: string): AppOptionsType[] =>
+  getGlobalOptions().apps[appName] ?? null;
 
-export const getProcessApp = async (appName: string) => (await listPm2Apps()).filter((app: PartialAppInfo) => app.appName === appName)?.[0];
+export const getProcessApp = async (appName: string) =>
+  (await listPm2Apps()).filter(
+    (app: PartialAppInfo) => app.appName === appName,
+  )?.[0];
 
 // From PM2 types
 export type ProcessStatus =

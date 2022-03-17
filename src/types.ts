@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const AppOptions = z.object({
   appName: z.string(),
   port: z.number(),
+  path: z.string().default('./').optional(),
   errorFile: z.string().optional(),
   logFile: z.string().optional(),
   script: z.string().default('build/index.js').optional(),
@@ -27,7 +28,7 @@ export const PushOptions = z.object({
   env: z.object({}).catchall(z.string()),
   minUptime: z.number(),
   maxRestarts: z.number(),
-  apps: z.object({}).catchall(z.array(AppOptions))
+  apps: z.object({}).catchall(z.array(AppOptions)),
 });
 
 export type AppOptionsType = z.infer<typeof AppOptions>;

@@ -1,13 +1,14 @@
-import anyTest, { ExecutionContext, TestFn } from "ava";
-import { createApp } from "../src/create";
-import { getAvailablePort } from "../src/util";
+import anyTest, { ExecutionContext, TestFn } from 'ava';
+import { getGlobalOptions } from '../src';
+import { createApp } from '../src/create';
+import { getAvailablePort } from '../src/util';
 import { setupTestSuite, TestSuiteType } from './_helper';
 
 const test = anyTest as TestFn<TestSuiteType>;
 
 const before = async (t: ExecutionContext<TestSuiteType>) => {
   await createApp('test', t.context.app);
-}
+};
 
 setupTestSuite(test, before);
 
