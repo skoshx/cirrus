@@ -120,11 +120,9 @@ test('create > local', async (t) => {
     ...t.context.app[0],
     commands: ['npm install', 'npm run build'],
     env: { NODE_ENV: 'test' },
-    errorFile:
-      '/Users/rasmus/Desktop/DEV/Web/cirrus/test/cirrus/logs/test/app.error.log',
+    logFile: join(__testDirname, 'cirrus', 'logs', 'test', 'app.log'),
+    errorFile: join(__testDirname, 'cirrus', 'logs', 'test', 'app.error.log'),
     instances: 1,
-    logFile:
-      '/Users/rasmus/Desktop/DEV/Web/cirrus/test/cirrus/logs/test/app.log',
     path: './',
   };
   t.deepEqual(apps, [createdAppFixture]);
