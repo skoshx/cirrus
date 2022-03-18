@@ -30,7 +30,7 @@ $ yarn global add cirrus
 
 ## Usage
 
-First, log in to your Virtual Private Server [DigitalOcean offers VPS' for a great price.](https://m.do.co/c/c8178a5d5ec6)
+First, log in to your Virtual Private Server. [DigitalOcean offers VPS' for only 5$/mo.](https://m.do.co/c/c8178a5d5ec6)
 
 ```bash
 $ ssh root@<ip>

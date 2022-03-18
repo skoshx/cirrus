@@ -4,24 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { cpu, memory, statusToColor, time } from '../formatting';
-import { AppInfo } from '../process';
+import { RepositoryInfo } from '../process';
 
-export interface InfoTableType {
-  port: number;
-}
-
-export const Table = ({ info }: { info: AppInfo }) => {
-  /*
-    port: z.number(),
-  errorFile: z.string(),
-  logFile: z.string(),
-  script: z.string().default('build/index.js').optional(),
-  env: z.object({}).catchall(z.string()).optional(),
-  instances: z.number().optional(),
-  remote: z
-
-  */
-
+export const Table = ({ info }: { info: RepositoryInfo }) => {
   const { isRawModeSupported } = useStdin();
 
   isRawModeSupported &&
@@ -38,17 +23,8 @@ export const Table = ({ info }: { info: AppInfo }) => {
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783; Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783;{'  '}Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
-
-      <Box paddingTop={1} paddingBottom={1} flexDirection="column">
-        <Text color={'cyanBright'} bold>
-          Environment
-        </Text>
-        <Text color={'gray'} bold>
-          {info.env}
-        </Text>
-      </Box>
 
       <Box paddingBottom={1} flexDirection="column">
         <Text color={'cyanBright'} bold>
@@ -64,11 +40,11 @@ export const Table = ({ info }: { info: AppInfo }) => {
           Port
         </Text>
         <Text color={'gray'} bold>
-          {info.port}
+          {info.port.join(', ')}
         </Text>
       </Box>
 
-      <Box paddingBottom={1} flexDirection="column">
+      {/*<Box paddingBottom={1} flexDirection="column">
         <Text color={'cyanBright'} bold>
           Logs
         </Text>
@@ -78,11 +54,11 @@ export const Table = ({ info }: { info: AppInfo }) => {
         <Text color={'gray'} bold>
           {info.errorFile}
         </Text>
-      </Box>
+      </Box>*/}
     </Box>
   );
 };
 
-export function renderInfo(info: AppInfo) {
+export function renderInfo(info: RepositoryInfo) {
   render(<Table info={info} />);
 }

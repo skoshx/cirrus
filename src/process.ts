@@ -1,9 +1,9 @@
-import { AppOptionsType, PushOptionsType } from './types';
-import pm2, { ProcessDescription } from 'pm2';
+import { AppOptionsType, PushOptionsType, RepositoryType } from './types';
+import pm2, { Proc, ProcessDescription } from 'pm2';
 import { getConfig, getRepoPath, saveConfig, tryCatch } from './util';
 import publicIp from 'public-ip';
 import { userInfo, homedir } from 'os';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { defaultOptions } from './defaults';
 
 let globalOptions: PushOptionsType;
@@ -11,7 +11,7 @@ let globalOptions: PushOptionsType;
 export async function initCirrus(
   options: PushOptionsType,
 ): Promise<PushOptionsType> {
-  saveConfig(options);
+  if (!existsSync(options.root)) saveConfig(options);
   await connectToPm2(); // Daemonize PM2
   return getGlobalOptions();
 }
@@ -25,8 +25,26 @@ async function connectToPm2() {
   });
 }
 
-export const getApp = (appName: string): AppOptionsType[] =>
-  getGlobalOptions().apps[appName] ?? null;
+export const getApp = (appName: string): AppOptionsType => {
+  const pizza = getGlobalOptions()
+    .repos.map((repo: RepositoryType) => repo.apps)
+    .reduce((previous, current) => {
+      return [...previous, ...current];
+    });
+  console.log(pizza);
+  // @ts-ignore
+  return null;
+  // pizza
+};
+//   getGlobalOptions().apps[appName] ?? null;
+
+export const getRepository = (
+  repositoryName: string,
+  options?: PushOptionsType,
+): RepositoryType =>
+  (options ?? getGlobalOptions()).repos.find(
+    (repo) => repo.repositoryName === repositoryName,
+  ) as RepositoryType;
 
 export const getProcessApp = async (appName: string) =>
   (await listPm2Apps()).filter(
@@ -42,20 +60,15 @@ export type ProcessStatus =
   | 'errored'
   | 'one-launch-status';
 
-export interface AppInfo {
-  appName: string;
-  port: number;
-  cpu?: number;
-  memory?: number;
-  uptime: number;
-  status?: ProcessStatus;
-
-  remote: string;
+export type AppInfo = Omit<AppOptionsType, 'env'> & {
   env: string;
-  script?: string;
-  instances?: number;
-  errorFile: string;
-  logFile: string;
+};
+
+export interface Pm2AppInfo {
+  cpu: number;
+  memory: number;
+  uptime: number;
+  status: ProcessStatus;
 }
 
 export interface AppLogs {
@@ -69,50 +82,107 @@ export type PartialAppInfo = Omit<
   'remote' | 'env' | 'script' | 'instances' | 'errorFile' | 'logFile'
 >;
 
-export async function listApps(): Promise<AppInfo[]> {
-  const pm2Apps = await listPm2Apps();
-  // TODO: move these out of here…
-  const externalIp = await publicIp.v4();
-  return [];
-  /*return globalOptions.apps.map((app: AppOptionsType) => {
-    const pm2App = pm2Apps.filter(
-      (pm2App: PartialAppInfo) => pm2App.appName === app.appName,
-    )?.[0];
-    const env = Object.entries(app.env ?? {})
-      .map(([key, value]) => `${key}=${value}`)
-      .join('\n');
-    return {
-      appName: app.appName,
-      port: app.port,
-      cpu: pm2App?.cpu,
-      memory: pm2App?.memory,
-      uptime: pm2App?.uptime ?? 0,
-      status: pm2App?.status,
-
-      remote: app.remote
-        ? app.remote
-        : `ssh://${userInfo().username}@${externalIp}${getRepoPath(
-            app.appName,
-          )}`,
-      env,
-      script: app.script,
-      instances: app.instances,
-      errorFile: app.errorFile,
-      logFile: app.logFile,
-    };
-  });*/
+export interface RepositoryInfo {
+  remote: string;
+  port: number[];
 }
 
-export async function getLogs(appName: string): Promise<AppLogs> {
-  const app = getApp(appName);
-  if (!app) throw Error(`Could not find app with name ${appName}`);
-  /* const { data: error } = await tryCatch(() =>
-    readFileSync(app.errorFile)?.toString('utf-8')?.split('\n'),
-  );
-  const { data: log } = await tryCatch(() =>
-    readFileSync(app.logFile)?.toString('utf-8')?.split('\n'),
-  ); */
-  return { appName, error: [], log: [] };
+export async function getRepositoryInfo(
+  repositoryName: string,
+): Promise<RepositoryInfo> {
+  const repository = getRepository(repositoryName);
+  if (!repository)
+    throw Error(`Repository with name ${repositoryName} does not exist.`);
+  // TODO: move this to init…
+  const externalIp = await publicIp.v4();
+  const remote = repository.remote
+    ? repository.remote
+    : `ssh://${userInfo().username}@${externalIp}${getRepoPath(
+        repositoryName,
+      )}`;
+  const port = repository.apps.map((app) => app.port);
+  return {
+    remote,
+    port,
+  };
+}
+
+async function getAppInfo(app: AppOptionsType): Promise<AppInfo> {
+  const env = Object.entries(app.env ?? {})
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n');
+  return {
+    ...app,
+    env,
+  };
+}
+
+async function getPm2AppInfo(app: AppOptionsType): Promise<Pm2AppInfo> {
+  return new Promise((resolve, reject) => {
+    pm2.list((err: Error, procList: ProcessDescription[]) => {
+      if (err) reject(err);
+      const proc: ProcessDescription | undefined = procList.find(
+        (process: ProcessDescription) => process.name === app.appName,
+      );
+      resolve({
+        cpu: proc?.monit?.cpu ?? 0,
+        memory: proc?.monit?.memory ?? 0,
+        uptime: Date.now() - (proc?.pm2_env?.pm_uptime ?? Date.now()),
+        status: proc?.pm2_env?.status ?? 'stopped',
+      });
+    });
+  });
+}
+
+// TODO: refactor this…
+export async function listApps(): Promise<(AppInfo & Pm2AppInfo)[]> {
+  const appInfos: (AppInfo & Pm2AppInfo)[] = [];
+
+  for (let i = 0; i < getGlobalOptions().repos.length; i++) {
+    const repo = getGlobalOptions().repos[i];
+    for (let i = 0; i < repo.apps.length; i++) {
+      const appInfo = await getAppInfo(repo.apps[i]);
+      const pm2AppInfo = await getPm2AppInfo(repo.apps[i]);
+      const combined = { ...appInfo, ...pm2AppInfo };
+      appInfos.push(combined);
+    }
+  }
+  /*for (const [, repos] of Object.entries(getGlobalOptions().repos)) {
+    for (let i = 0; i < repos.length; i++) {
+      const appInfo = await getAppInfo(apps[i]);
+      const pm2AppInfo = await getPm2AppInfo(apps[i]);
+      const combined = { ...appInfo, ...pm2AppInfo };
+      appInfos.push(combined);
+    }
+  }*/
+
+  return appInfos;
+}
+
+export async function getLogs(repositoryName: string): Promise<AppLogs[]> {
+  const repository = getRepository(repositoryName);
+  if (!repository)
+    throw Error(`Could not find repository with name ${repositoryName}`);
+  const logs: AppLogs[] = [];
+  for (let i = 0; i < repository.apps.length; i++) {
+    const { data: error } = await tryCatch(() =>
+      readFileSync(repository.apps[i].errorFile as string)
+        ?.toString('utf-8')
+        ?.split('\n'),
+    );
+    const { data: log } = await tryCatch(() =>
+      readFileSync(repository.apps[i].logFile as string)
+        ?.toString('utf-8')
+        ?.split('\n'),
+    );
+    logs.push({
+      appName: repository.apps[i].appName,
+      error: error ?? [],
+      log: log ?? [],
+    });
+  }
+
+  return logs;
 }
 
 export async function listPm2Apps(): Promise<PartialAppInfo[]> {

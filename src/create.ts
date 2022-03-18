@@ -1,7 +1,12 @@
 import { execa, execaCommand } from 'execa';
 import { createHook } from './hooks';
-import { getApp, getGlobalOptions } from './process';
-import { AppOptions, AppOptionsType, PushOptionsType } from './types';
+import { getGlobalOptions, getRepository } from './process';
+import {
+  AppOptions,
+  AppOptionsType,
+  PushOptionsType,
+  RepositoryType,
+} from './types';
 import { clone, getRepoPath, getWorkPath, saveConfig, tryCatch } from './util';
 import { writeFileSync, mkdirSync, chmodSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -16,17 +21,48 @@ appName: z.string(),
   instances: z.number().optional(),
 */
 
-export function createAppDefinition(
-  appName: string,
+export function createRepoDefinition(
+  repositoryName: string,
   appOptions: AppOptionsType[],
   options: PushOptionsType,
 ) {
-  const optionsClone = clone(options);
-  if (optionsClone.apps[appName])
-    throw Error(`An app with name ${appName} already exists.`);
+  const optionsClone: PushOptionsType = clone(options);
+  if (getRepository(repositoryName, options))
+    throw Error(`A repository with name ${repositoryName} already exists.`);
+
+  const repository: RepositoryType = {
+    repositoryName,
+    apps: appOptions.map((app: AppOptionsType) => {
+      const parsedOptions = AppOptions.parse(app);
+      return {
+        logFile: join(
+          options.root,
+          'logs',
+          repositoryName,
+          `${app.appName}.log`,
+        ),
+        errorFile: join(
+          options.root,
+          'logs',
+          repositoryName,
+          `${app.appName}.error.log`,
+        ),
+        script: 'build/index.js',
+        commands: ['npm install', 'npm run build'],
+        instances: 1,
+        path: './',
+        ...parsedOptions,
+        env: {
+          ...optionsClone.env,
+          ...parsedOptions.env,
+        },
+      };
+    }),
+  };
+  optionsClone.repos.push(repository);
 
   // @ts-ignore
-  optionsClone.apps[appName] = appOptions.map((app: AppOptionsType) => {
+  /*optionsClone.repos[appName] = appOptions.map((app: AppOptionsType) => {
     const parsedOptions = AppOptions.parse(app);
     return {
       logFile: join(options.root, 'logs', appName, `${app.appName}.log`),
@@ -46,17 +82,18 @@ export function createAppDefinition(
         ...parsedOptions.env,
       },
     };
-  });
+  });*/
   return optionsClone;
 }
 
 export async function createApp(
-  appName: string,
+  repositoryName: string,
   apps: AppOptionsType[],
-): Promise<AppOptionsType[]> {
-  if (getApp(appName)) throw Error(`App with name ${appName} exists already.`);
+): Promise<RepositoryType> {
+  if (getRepository(repositoryName))
+    throw Error(`Repository with name ${repositoryName} exists already.`);
 
-  saveConfig(createAppDefinition(appName, apps, getGlobalOptions()));
+  saveConfig(createRepoDefinition(repositoryName, apps, getGlobalOptions()));
 
   /* const { error } = await tryCatch<boolean>(
     options.remote
@@ -64,15 +101,14 @@ export async function createApp(
       : createAppRepo(appName, options),
   ); */
 
-  const hook = createHook(appName, apps);
-  const { error } = await tryCatch<boolean>(createAppRepo(appName, hook));
+  const hook = createHook(repositoryName, apps);
+  const { error } = await tryCatch<boolean>(
+    createAppRepo(repositoryName, hook),
+  );
   if (error) throw error;
 
-  // TODO: here pass plugins
-  console.log('TODO: Here ppass plugins…');
-
   // Return created app
-  return getApp(appName);
+  return getRepository(repositoryName);
 }
 
 export async function createRemoteApp(
@@ -93,6 +129,7 @@ export async function createAppRepo(
 ): Promise<boolean> {
   // Create directory
   mkdirSync(getRepoPath(appName), { recursive: true });
+  // mkdirSync(getWorkPath(appName), { recursive: true });
 
   // Bare git repo
   const { stderr, exitCode } = await execaCommand(
@@ -102,11 +139,19 @@ export async function createAppRepo(
     throw stderr ?? 'creating bare git repo failed';
 
   // Create hook
-  writeFileSync(`${getRepoPath(appName)}/hooks/post-receive`, hook);
-  chmodSync(`${getRepoPath(appName)}/hooks/post-receive`, '0777');
+  updateHook(appName, hook);
 
   // Clone empty working copy
-  /* const { stderr: cloneEmptyError, exitCode: cloneExitCode } = await execaCommand(`git clone ${getRepoPath(appName)} \"${getWorkPath(appName)}\"`);
-  if (cloneExitCode && cloneExitCode !== 0) throw (cloneEmptyError ?? 'cloning empty working copy failed'); */
+  const { stderr: cloneEmptyError, exitCode: cloneExitCode } =
+    await execaCommand(
+      `git clone ${getRepoPath(appName)} ${getWorkPath(appName)}`,
+    );
+  if (cloneExitCode && cloneExitCode !== 0)
+    throw cloneEmptyError ?? 'cloning empty working copy failed';
   return true;
+}
+
+export function updateHook(repositoryName: string, hook: string) {
+  writeFileSync(`${getRepoPath(repositoryName)}/hooks/post-receive`, hook);
+  chmodSync(`${getRepoPath(repositoryName)}/hooks/post-receive`, '0777');
 }

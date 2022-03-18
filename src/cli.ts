@@ -4,13 +4,52 @@ import { renderList } from './ink/list';
 import { renderLogs } from './ink/logs';
 import { logError } from './logger';
 import { join } from 'path';
+import { userInfo } from 'os';
 import { renderInfo } from './ink/info';
-import { removeApp, stopApp } from '.';
-import { getAvailablePort, getLogPath, tryCatch } from './util';
-import { getDefaultGlobalEnvironment } from './defaults';
-import { getApp, getLogs, listApps, initCirrus, AppInfo } from './process';
+import { removeApp, startApp, stopApp, stopRepository } from '.';
+import { getAvailablePort, getLogPath, getRepoPath, tryCatch } from './util';
+import { defaultOptions, getDefaultGlobalEnvironment } from './defaults';
+import {
+  getApp,
+  getLogs,
+  listApps,
+  initCirrus,
+  AppInfo,
+  getRepositoryInfo,
+  getRepository,
+} from './process';
+import { createApp, updateHook } from './create';
+import publicIp from 'public-ip';
+import { createHook } from './hooks';
 
-const create = (helpText: string, options: Options<any>) =>
+const subcommand = (options: Options<AnyFlags>) =>
+  meow({
+    ...options,
+    description: 'Subcommand description',
+    help: `
+		Unicorn command
+		Usage:
+			foo unicorn <input>
+	`,
+    flags: {
+      unicorn: { alias: 'u', isRequired: true },
+    },
+  });
+
+/*const subcommand = (options: Options<AnyFlags>) => meow({
+	...options,
+	description: 'Subcommand description',
+	help: `
+		Unicorn command
+		Usage:
+			foo unicorn <input>
+	`,
+	flags: {
+		unicorn: {alias: 'u', isRequired: true},
+	},
+});*/
+
+const create = (options: Options<AnyFlags>) =>
   meow({
     ...options,
     help: `
@@ -31,7 +70,7 @@ const create = (helpText: string, options: Options<any>) =>
     },
   });
 
-const remove = (helpText: string, options: Options<any>) =>
+const remove = (options: Options<AnyFlags>) =>
   meow({
     ...options,
     help: `
@@ -40,16 +79,19 @@ const remove = (helpText: string, options: Options<any>) =>
   `,
   });
 
-const stop = (helpText: string, options: Options<any>) =>
+const stop = (options: Options<AnyFlags>) =>
   meow({
     ...options,
     help: `
   🌧  Stop - stop a Cirrus app
 	$ cirrus stop <app>
+
+  Options
+    --repository, -r        Stop all apps in the repository
   `,
   });
 
-const info = (helpText: string, options: Options<any>) =>
+const info = (options: Options<AnyFlags>) =>
   meow({
     ...options,
     help: `
@@ -58,7 +100,7 @@ const info = (helpText: string, options: Options<any>) =>
   `,
   });
 
-const start = (helpText: string, options: Options<any>) =>
+const start = (options: Options<AnyFlags>) =>
   meow({
     ...options,
     help: `
@@ -75,7 +117,7 @@ const start = (helpText: string, options: Options<any>) =>
     },
   });
 
-const restart = (helpText: string, options: Options<any>) =>
+const restart = (options: Options<AnyFlags>) => {
   meow({
     ...options,
     help: `
@@ -83,22 +125,61 @@ const restart = (helpText: string, options: Options<any>) =>
 	$ cirrus restart <app>
   `,
   });
+};
 
-const list = (helpText: string, options: Options<any>) =>
+const list = (options: Options<AnyFlags>) =>
   meow({
     ...options,
     help: `
-  🌧  Cirrus 'list' usage
+  🌧  List - list all Cirrus apps
 	$ cirrus list <app>
   `,
   });
 
-const web = (helpText: string, options: Options<any>) =>
+const web = (options: Options<AnyFlags>) =>
   meow({
     ...options,
     help: `
-  🌧  Cirrus 'web' usage
+  🌧  Web - a web interface to monitor your apps
 	$ cirrus web [options]
+
+  Options
+    --port, -p              Port for the web service
+    --start,                Start web service
+    --stop,                 Stop web service
+  `,
+    flags: {
+      port: { type: 'number', alias: 'p' },
+      start: { type: 'boolean' },
+      stop: { type: 'boolean' },
+    },
+  });
+
+const logs = (options: Options<AnyFlags>) =>
+  meow({
+    ...options,
+    help: `
+  🌧  Logs - show logs of an app
+  $ cirrus logs <app>
+
+  Options
+    --port, -p              Port for the web service
+    --start,                Start web service
+    --stop,                 Stop web service
+  `,
+    flags: {
+      port: { type: 'number', alias: 'p' },
+      start: { type: 'boolean' },
+      stop: { type: 'boolean' },
+    },
+  });
+
+const update = (options: Options<AnyFlags>) =>
+  meow({
+    ...options,
+    help: `
+  🌧  Update - update everything after modifying .cirrusrc
+  $ cirrus update <app>
 
   Options
     --port, -p              Port for the web service
@@ -139,12 +220,24 @@ const cli = meow(
     commands: {
       // @ts-ignore
       create,
-      /* remove,
+      // @ts-ignore
+      remove,
+      // @ts-ignore
       stop,
+      // @ts-ignore
       start,
+      // @ts-ignore
       restart,
+      // @ts-ignore
       list,
-      web, */
+      // @ts-ignore
+      info,
+      // @ts-ignore
+      web,
+      // @ts-ignore
+      logs,
+      // @ts-ignore
+      update,
     },
     flags: {
       rainbow: {
@@ -158,23 +251,23 @@ const cli = meow(
 const subcommands: Record<string, any> = {
   create: async (cli: Result<any>) => {
     const port = getAvailablePort(cli.flags.port as undefined);
-    /*const { error } = await tryCatch(
-      createApp(cli.input[0], {
-        port,
-        env: {
-          ...getDefaultGlobalEnvironment(),
-          PORT: port.toString()
+    const { error } = await tryCatch(
+      createApp(cli.input[0], [
+        {
+          port,
+          env: {
+            ...getDefaultGlobalEnvironment(),
+            PORT: port.toString(),
+          },
+          script: (cli.flags.script as string) ?? 'build/index.js', // SvelteKit default ;)
+          appName: cli.input[0],
         },
-        script: cli.flags.script as any ?? 'build/index.js', // SvelteKit default ;)
-        appName: cli.input[0],
-        logFile: join(getLogPath(cli.input[0]), `${cli.input[0]}.log`),
-        errorFile: join(getLogPath(cli.input[0]), `${cli.input[0]}-err.log`),
-      }),
+      ]),
     );
 
-    if (error) return logError(error); */
+    if (error) return logError(error);
 
-    if (await listApps()) renderList(await listApps());
+    renderList(await listApps());
   },
   remove: async (cli: Result<any>) => {
     const { error } = await tryCatch(removeApp(cli.input[0]));
@@ -182,22 +275,24 @@ const subcommands: Record<string, any> = {
     if (await listApps()) renderList(await listApps());
   },
   stop: async (cli: Result<any>) => {
-    const { error } = await tryCatch(stopApp(cli.input[0]));
+    const { error } = await tryCatch(
+      cli.flags.repository
+        ? stopRepository(cli.flags.repository as string)
+        : stopApp(cli.input[0]),
+    );
     if (error) return logError(error);
     if (await listApps()) renderList(await listApps());
   },
   start: async (cli: Result<any>) => {
-    // const { error } = await tryCatch(startApp(cli.input[0]));
-    // if (error) return logError(error);
-    if (await listApps()) renderList(await listApps());
+    const { error } = await tryCatch(startApp(cli.input[0]));
+    if (error) return logError(error);
+    renderList(await listApps());
   },
   restart: async (cli: Result<any>) => {
     const { error } = await tryCatch(stopApp(cli.input[0]));
     if (error) return logError(error);
-    /*const { error: startError } = await tryCatch(
-      startApp(cli.input[0], getApp(cli.input[0])),
-    );
-    if (startError) return logError(startError);*/
+    const { error: startError } = await tryCatch(startApp(cli.input[0]));
+    if (startError) return logError(startError);
     if (await listApps()) renderList(await listApps());
   },
   list: async (cli: Result<any>) => {
@@ -206,31 +301,42 @@ const subcommands: Record<string, any> = {
     if (data) renderList(data);
   },
   info: async (cli: Result<any>) => {
-    const { data, error } = await tryCatch(listApps());
-    if (error) return logError(error);
-
-    const appInfo = data?.filter(
-      (app: AppInfo) => app.appName === cli.input[0],
-    )?.[0];
-    if (!appInfo)
+    const repository = getRepository(cli.input[0]);
+    if (!repository)
       return logError(
-        new Error(`Could not find app with name ${cli.input[0]}`),
+        new Error(`Repository named ${cli.input[0]} does not exist.`),
       );
-    renderInfo(appInfo);
+
+    const repoInfo = await getRepositoryInfo(repository.repositoryName);
+    renderInfo(repoInfo);
   },
   logs: async (cli: Result<any>) => {
     const { data, error } = await tryCatch(getLogs(cli.input[0]));
     if (error) return logError(error);
     if (data) renderLogs(data, cli.input[0]);
   },
+  update: async (cli: Result<any>) => {
+    const repository = getRepository(cli.input[0]);
+    if (!repository)
+      return logError(
+        new Error(`Repository named ${cli.input[0]} does not exist.`),
+      );
+    const hook = createHook(repository.repositoryName, repository.apps);
+    updateHook(repository.repositoryName, hook);
+  },
 };
 
 async function handleCli(cli: Result<any>) {
-  // await initCirrus();
+  await initCirrus(defaultOptions);
 
-  const command = Object.keys(cli.commands ?? {})?.[0];
+  // @ts-ignore
+  // console.log(cli.commands);
+
+  // @ts-ignore
+  const [command, commandOptions] = Object.entries(cli.commands ?? {})?.[0];
   const subcommand = subcommands[command];
-  if (subcommand) await subcommand(cli);
+  // @ts-ignore
+  if (subcommand) await subcommand(commandOptions);
 
   pm2.disconnect();
 }

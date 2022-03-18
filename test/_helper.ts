@@ -26,7 +26,7 @@ export function setupTestSuite(
       env: { NODE_ENV: 'test' },
       minUptime: ms('1h'),
       maxRestarts: 10,
-      apps: {},
+      repos: [],
     };
 
     // delete cirrus folder if exists

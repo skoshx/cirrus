@@ -4,10 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { cpu, memory, statusToColor, time } from '../formatting';
-import { AppInfo, listApps } from '../process';
+import { AppInfo, listApps, Pm2AppInfo } from '../process';
 
-export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
-  const [infos, setInfos] = useState<AppInfo[]>([]);
+export const Table = ({ apps: appsx }: { apps: (AppInfo & Pm2AppInfo)[] }) => {
+  const [infos, setInfos] = useState<(AppInfo & Pm2AppInfo)[]>([]);
 
   const { isRawModeSupported } = useStdin();
 
@@ -38,7 +38,7 @@ export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783; Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783;{'  '}Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
       <Box justifyContent={'space-between'} paddingTop={1}>
         <Box width={fixedWidth}>
@@ -86,7 +86,7 @@ export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
         </Box>
       ) : null}
 
-      {infos.map((app: AppInfo) => (
+      {infos.map((app) => (
         <Box key={app.appName} justifyContent={'space-between'} paddingTop={1}>
           <Box width={fixedWidth}>
             <Text>{app.appName}</Text>
@@ -114,7 +114,7 @@ export const Table = ({ apps: appsx }: { apps: AppInfo[] }) => {
   );
 };
 
-export function renderList(apps: AppInfo[]) {
+export function renderList(apps: (AppInfo & Pm2AppInfo)[]) {
   render(<Table apps={apps} />);
 }
 

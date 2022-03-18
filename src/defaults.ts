@@ -21,5 +21,5 @@ export const defaultOptions: PushOptionsType = {
   env: getDefaultGlobalEnvironment(),
   minUptime: 3600000,
   maxRestarts: 10,
-  apps: {},
+  repos: [],
 };

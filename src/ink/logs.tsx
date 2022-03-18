@@ -11,10 +11,10 @@ export const Logs = ({
   logs: appLogs,
   appName,
 }: {
-  logs: AppLogs;
+  logs: AppLogs[];
   appName: string;
 }) => {
-  const [logs, setLogs] = useState<AppLogs>(appLogs);
+  const [logs, setLogs] = useState<AppLogs[]>(appLogs);
   const { isRawModeSupported } = useStdin();
 
   isRawModeSupported &&
@@ -30,6 +30,44 @@ export const Logs = ({
 
     return () => clearInterval(timer);
   }, []);
+
+  const appLogElements = appLogs.map((logs: AppLogs, index: number) => {
+    return (
+      <Box
+        key={`${logs.appName}-${index}`}
+        display={'flex'}
+        flexDirection={'column'}
+      >
+        <Box paddingTop={1} paddingBottom={1} flexDirection="column">
+          <Text color={'redBright'} bold>
+            Error logs ({logs.appName})
+          </Text>
+          {logs.error.length === 0 ? (
+            <Text color={'gray'}>No error logs found</Text>
+          ) : null}
+          {logs.error.slice(-5).map((log: string, index: number) => (
+            <Text color={'gray'} key={log + index}>
+              {log}
+            </Text>
+          ))}
+        </Box>
+
+        <Box paddingTop={1} paddingBottom={1} flexDirection="column">
+          <Text color={'cyan'} bold>
+            Logs ({logs.appName})
+          </Text>
+          {logs.log.length === 0 ? (
+            <Text color={'gray'}>No logs found</Text>
+          ) : null}
+          {logs.log.slice(-5).map((log: string, index: number) => (
+            <Text color={'gray'} key={log + index}>
+              {log}
+            </Text>
+          ))}
+        </Box>
+      </Box>
+    );
+  });
   return (
     <Box
       flexDirection="column"
@@ -39,40 +77,14 @@ export const Logs = ({
     >
       <Text color={'cyanBright'} bold>
         {' '}
-        &#127783; Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
+        &#127783;{'  '}Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
       </Text>
 
-      <Box paddingTop={1} paddingBottom={1} flexDirection="column">
-        <Text color={'redBright'} bold>
-          Error logs
-        </Text>
-        {logs.error.length === 0 ? (
-          <Text color={'gray'}>No error logs found</Text>
-        ) : null}
-        {logs.error.slice(-5).map((log: string, index: number) => (
-          <Text color={'gray'} key={log + index}>
-            {log}
-          </Text>
-        ))}
-      </Box>
-
-      <Box paddingTop={1} paddingBottom={1} flexDirection="column">
-        <Text color={'cyan'} bold>
-          Logs
-        </Text>
-        {logs.log.length === 0 ? (
-          <Text color={'gray'}>No logs found</Text>
-        ) : null}
-        {logs.log.slice(-5).map((log: string, index: number) => (
-          <Text color={'gray'} key={log + index}>
-            {log}
-          </Text>
-        ))}
-      </Box>
+      {appLogElements}
     </Box>
   );
 };
 
-export function renderLogs(logs: AppLogs, appName: string) {
+export function renderLogs(logs: AppLogs[], appName: string) {
   render(<Logs logs={logs} appName={appName} />);
 }

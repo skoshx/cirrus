@@ -29,8 +29,7 @@
     "prettier-check": "prettier --check .",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
-    "release": "np --preview",
-    "postinstall": "patch-package"
+    "release": "np --preview"
   },
   "ava": {
     "extensions": {
@@ -79,11 +78,9 @@
     "cli-spinners": "^2.6.1",
     "execa": "^6.1.0",
     "ink": "^3.2.0",
-    "meow": "^10.1.2",
+    "meow": "https://github.com/skoshx/meow",
     "ms": "3.0.0-canary.1",
-    "patch-package": "^6.4.7",
     "pm2": "^5.2.0",
-    "postinstall-postinstall": "^2.1.0",
     "public-ip": "^5.0.0",
     "react": "^17.0.2",
     "rimraf": "^3.0.2",

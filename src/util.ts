@@ -7,10 +7,10 @@ import { join } from 'path';
 import { defaultOptions } from './defaults';
 
 export function isPortTaken(port: number) {
-  const takenPorts = [];
+  const takenPorts: number[] = [];
   const options = getGlobalOptions();
-  for (const [, value] of Object.entries(options.apps)) {
-    takenPorts.push(...value.map((app) => app.port));
+  for (let i = 0; i < options.repos.length; i++) {
+    takenPorts.push(...options.repos[i].apps.map((app) => app.port));
   }
   return takenPorts.includes(port);
 }
