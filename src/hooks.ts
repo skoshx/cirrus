@@ -14,18 +14,14 @@ export function createHook(appName: string, apps: AppOptionsType[]): string {
   const options = getGlobalOptions();
   const commands = apps
     .map((app: AppOptionsType) => {
-      if (!app.commands)
-        return [
-          `cd ${app.path ?? './'} || exit 1`,
-          'npm install || exit 1',
-          'npm run build || exit 1',
-        ];
+      if (!app.commands) return [];
 
       return [
-        `cd ${app.path ?? './'} || exit 1`,
-        ...(app.commands.map((command: string) => `${command} || exit 1`) ??
-          []),
-        `cd {{cirrus_dir}}/apps/{{app}}`,
+        `cd ${app.path ?? './'} || handle_error "cd" 1`,
+        ...(app.commands.map(
+          (command: string) => `${command} || handle_error "${command}" 1`,
+        ) ?? []),
+        `cd {{cirrus_dir}}/apps/{{app}} || handle_error "cd" 1`,
       ];
     })
     .reduce((prevCommands, currentCommands) => [

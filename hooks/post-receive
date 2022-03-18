@@ -10,6 +10,12 @@ LAST_COMMIT=`git log -1 | awk 'NR==1 {print $2}'`
 git fetch --all
 git reset --hard origin/main
 
+handle_error() {
+  echo "`tput setaf 1`ERROR: Command $1 exited with code $2, working tree is reverted.`tput sgr0`"
+  git reset $LAST_COMMIT --hard
+	exit $2
+}
+
 {{commands}}
 
 cirrus stop {{app}}

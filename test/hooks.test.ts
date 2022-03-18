@@ -19,9 +19,16 @@ LAST_COMMIT=\`git log -1 | awk 'NR==1 {print $2}'\`
 git fetch --all
 git reset --hard origin/main
 
-cd ./ || exit 1
-npm install || exit 1
-npm run build || exit 1
+handle_error() {
+  echo "\`tput setaf 1\`ERROR: Command $1 exited with code $2, working tree is reverted.\`tput sgr0\`"
+  git reset $LAST_COMMIT --hard
+	exit $2
+}
+
+cd ./ || handle_error "cd" 1
+npm install || handle_error "npm install" 1
+npm run build || handle_error "npm run build" 1
+cd ${join(t.context.global.root, 'apps', 'app')} || handle_error "cd" 1
 
 cirrus stop app
 cirrus start app
@@ -39,14 +46,20 @@ LAST_COMMIT=\`git log -1 | awk 'NR==1 {print $2}'\`
 git fetch --all
 git reset --hard origin/main
 
-cd apps/web || exit 1
-npm install || exit 1
-npm run build || exit 1
-cd ${join(t.context.global.root, 'apps', 'monorepo')}
-cd apps/api || exit 1
-npm install || exit 1
-npm run build || exit 1
-cd ${join(t.context.global.root, 'apps', 'monorepo')}
+handle_error() {
+  echo "\`tput setaf 1\`ERROR: Command $1 exited with code $2, working tree is reverted.\`tput sgr0\`"
+  git reset $LAST_COMMIT --hard
+	exit $2
+}
+
+cd apps/web || handle_error "cd" 1
+npm install || handle_error "npm install" 1
+npm run build || handle_error "npm run build" 1
+cd ${join(t.context.global.root, 'apps', 'monorepo')} || handle_error "cd" 1
+cd apps/api || handle_error "cd" 1
+npm install || handle_error "npm install" 1
+npm run build || handle_error "npm run build" 1
+cd ${join(t.context.global.root, 'apps', 'monorepo')} || handle_error "cd" 1
 
 cirrus stop monorepo
 cirrus start monorepo

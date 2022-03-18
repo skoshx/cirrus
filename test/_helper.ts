@@ -40,6 +40,7 @@ export function setupTestSuite(
         appName: 'app',
         port: 3000,
         script: 'build/index.js',
+        commands: ['npm install', 'npm run build'],
         env: {},
       },
     ];
