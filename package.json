@@ -9,6 +9,9 @@
   },
   "main": "./dist/index.cjs",
   "type": "module",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "exports": {
     "import": "./dist/index.mjs",
     "require": "./dist/index.cjs"
