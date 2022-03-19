@@ -1,10 +1,11 @@
 {
-  "name": "cirrus",
+  "name": "cirrus2",
   "version": "0.0.10",
   "description": "Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Evan You's pod.",
   "repository": "skoshx/cirrus",
   "bin": {
-    "cirrus": "./dist/index.cli.mjs"
+    "cirrus": "./dist/index.cli.mjs",
+    "cirrus2": "./dist/index.cli.mjs"
   },
   "main": "./dist/index.cjs",
   "type": "module",
