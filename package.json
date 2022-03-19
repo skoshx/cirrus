@@ -21,7 +21,7 @@
     "node": ">=12.13"
   },
   "files": [
-    "dist"
+    "dist", "hooks"
   ],
   "scripts": {
     "test": "NODE_ENV=test CIRRUS_ROOT=`pwd`/test/cirrus NODE_NO_WARNINGS=1 ava",
