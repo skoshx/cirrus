@@ -36,19 +36,6 @@ const subcommand = (options: Options<AnyFlags>) =>
     },
   });
 
-/*const subcommand = (options: Options<AnyFlags>) => meow({
-	...options,
-	description: 'Subcommand description',
-	help: `
-		Unicorn command
-		Usage:
-			foo unicorn <input>
-	`,
-	flags: {
-		unicorn: {alias: 'u', isRequired: true},
-	},
-});*/
-
 const create = (options: Options<AnyFlags>) =>
   meow({
     ...options,
@@ -206,6 +193,7 @@ const cli = meow(
     stop <app>              Stop an app
     restart <app>           Restart an app that's already running
     info <app>              Shows detailed information about an app
+    update <app>            Update app after modifying it from .cirrusrc
     setup                   Sets up Cirrus (env, plugins, firewalls)
     list                    List apps and status
     prune                   Clean up dead files
@@ -238,12 +226,6 @@ const cli = meow(
       logs,
       // @ts-ignore
       update,
-    },
-    flags: {
-      rainbow: {
-        type: 'boolean',
-        alias: 'r',
-      },
     },
   },
 );
@@ -328,9 +310,6 @@ const subcommands: Record<string, any> = {
 
 async function handleCli(cli: Result<any>) {
   await initCirrus(defaultOptions);
-
-  // @ts-ignore
-  // console.log(cli.commands);
 
   // @ts-ignore
   const [command, commandOptions] = Object.entries(cli.commands ?? {})?.[0];
