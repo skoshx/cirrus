@@ -6,7 +6,6 @@ export const AppOptions = z.object({
   path: z.string().default('./').optional(),
   errorFile: z.string().optional(),
   logFile: z.string().optional(),
-  script: z.string().default('build/index.js').optional(),
   commands: z.array(z.string()).optional(),
   env: z.object({}).catchall(z.string()).optional(),
   instances: z.number().optional(),

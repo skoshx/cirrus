@@ -27,10 +27,8 @@ function startAppPm2(
   return new Promise((resolve, reject) => {
     const processOptions: StartOptions = {
       name: app.appName,
-      // script: 'npm',
-      // script: `${join(getWorkPath(repositoryName), app.script ?? 'build/index.js')}`,
-      script: app.script,
-      // args: 'start',
+      script: 'npm',
+      args: 'start',
       min_uptime: getGlobalOptions().minUptime,
       max_restarts: getGlobalOptions().maxRestarts,
       output: app.logFile,

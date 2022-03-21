@@ -39,7 +39,6 @@ export function setupTestSuite(
       {
         appName: 'app',
         port: 3000,
-        script: 'build/index.js',
         commands: ['npm install', 'npm run build'],
         env: {},
       },
@@ -50,14 +49,12 @@ export function setupTestSuite(
         appName: 'monorepo-app',
         port: 3000,
         path: 'apps/web',
-        script: 'build/index.js',
         commands: ['npm install', 'npm run build'],
       },
       {
         appName: 'monorepo-api',
         port: 3001,
         path: 'apps/api',
-        script: 'build/index.js',
         commands: ['npm install', 'npm run build'],
         env: {
           NODE_ENV: 'production',

@@ -10,16 +10,6 @@ import {
 import { clone, getRepoPath, getWorkPath, saveConfig, tryCatch } from './util';
 import { writeFileSync, mkdirSync, chmodSync, existsSync } from 'fs';
 import { join } from 'path';
-/*
-
-appName: z.string(),
-  port: z.number(),
-  errorFile: z.string().optional(),
-  logFile: z.string().optional(),
-  script: z.string().default('build/index.js'),
-  env: z.object({}).catchall(z.string()).optional(),
-  instances: z.number().optional(),
-*/
 
 export function createRepoDefinition(
   repositoryName: string,
@@ -60,29 +50,6 @@ export function createRepoDefinition(
     }),
   };
   optionsClone.repos.push(repository);
-
-  // @ts-ignore
-  /*optionsClone.repos[appName] = appOptions.map((app: AppOptionsType) => {
-    const parsedOptions = AppOptions.parse(app);
-    return {
-      logFile: join(options.root, 'logs', appName, `${app.appName}.log`),
-      errorFile: join(
-        options.root,
-        'logs',
-        appName,
-        `${app.appName}.error.log`,
-      ),
-      script: 'build/index.js',
-      commands: ['npm install', 'npm run build'],
-      instances: 1,
-      path: './',
-      ...parsedOptions,
-      env: {
-        ...optionsClone.env,
-        ...parsedOptions.env,
-      },
-    };
-  });*/
   return optionsClone;
 }
 
@@ -118,9 +85,6 @@ export async function createRemoteApp(
   throw Error(
     `Support for GitHub remote has not been added yet. Feel free to open a Pull Request.`,
   );
-  // const { stderr } = await execa(`git clone ${options.remote} \"${getWorkPath(appName)}\"`);
-  // if (stderr) throw stderr;
-  return true;
 }
 
 export async function createAppRepo(

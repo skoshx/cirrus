@@ -241,7 +241,6 @@ const subcommands: Record<string, any> = {
             ...getDefaultGlobalEnvironment(),
             PORT: port.toString(),
           },
-          script: (cli.flags.script as string) ?? 'build/index.js', // SvelteKit default ;)
           appName: cli.input[0],
         },
       ]),
