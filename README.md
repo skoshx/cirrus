@@ -20,13 +20,32 @@ Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Eva
 ## Install
 
 ```bash
-$ yarn global add cirrus
+$ yarn global add cirrus2
+```
+
+or with npm
+
+```bash
+$ npm install -g cirrus2
 ```
 
 ## Features
 
 - Monorepo support out of the box
 - Plugins
+
+## Available commands
+
+#### **`create`**
+
+allows you to create a cloud app either from a local repository or a GitHub remote.
+
+Options<br />
+`--port, -p` Port to use for your app<br />
+`--environment, -e` Path to an .env file to source when creating app<br />
+`--remote, -r` Port to use for your app<br />
+
+TODO: Write the rest
 
 ## Usage
 
@@ -95,6 +114,7 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
   - Every AppOptions definition has their own env, commands etc…
 - Plugins
   - Plugins work in such a way: Plugins are ever-present, passed to all functions `create`, `delete`, `createHook`, and then the plugin is called after all transformations are made…
+- Improved docs
 - Tests
 - Automatic Caddy server configuration --> Implement as a plugin…
 - Automatic Postgres configuration --> Implement as a plugin

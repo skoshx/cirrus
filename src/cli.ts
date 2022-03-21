@@ -187,7 +187,6 @@ const cli = meow(
 
 	Commands
     create <app>            Create a new app
-    remote <app> <repo>     Create a app from a remote GitHub repo
     remove <app>            Delete an app
     start <app>             Start an app monitored by pm2
     stop <app>              Stop an app
@@ -202,7 +201,7 @@ const cli = meow(
 
 	Examples
     $ cirrus create my-app
-    $ cirrus create my-remote-app --remote https://github.com/skoshx/cirrus`,
+    $ cirrus create --help`,
   {
     importMeta: import.meta,
     commands: {
