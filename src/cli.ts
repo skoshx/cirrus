@@ -3,8 +3,6 @@ import pm2 from 'pm2';
 import { renderList } from './ink/list';
 import { renderLogs } from './ink/logs';
 import { logError } from './logger';
-import { join } from 'path';
-import { userInfo } from 'os';
 import { renderInfo } from './ink/info';
 import { removeApp, startApp, stopApp, stopRepository } from '.';
 import { getAvailablePort, getLogPath, getRepoPath, tryCatch } from './util';
@@ -19,22 +17,7 @@ import {
   getRepository,
 } from './process';
 import { createApp, updateHook } from './create';
-import publicIp from 'public-ip';
 import { createHook } from './hooks';
-
-const subcommand = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    description: 'Subcommand description',
-    help: `
-		Unicorn command
-		Usage:
-			foo unicorn <input>
-	`,
-    flags: {
-      unicorn: { alias: 'u', isRequired: true },
-    },
-  });
 
 const create = (options: Options<AnyFlags>) =>
   meow({
@@ -45,12 +28,14 @@ const create = (options: Options<AnyFlags>) =>
 
   Options
     --port, -p              Port to use for your app
+    --domain, -d            Domain to use for your app
     --environment, -e       Path to an .env file to source when creating app
     --remote, -r            Create an app from a GitHub remote
     --script, -s            Path to the start script. Defaults to 'build/index.js'
   `,
     flags: {
       port: { type: 'number', alias: 'p' },
+      domain: { type: 'string', alias: 'd' },
       environment: { type: 'string', alias: 'e' },
       remote: { type: 'string', alias: 'r' },
       script: { type: 'string', alias: 's' },
@@ -241,6 +226,7 @@ const subcommands: Record<string, any> = {
             PORT: port.toString(),
           },
           appName: cli.input[0],
+          ...(cli.flags.domain !== undefined && { domain: '' }),
         },
       ]),
     );

@@ -63,7 +63,9 @@
     "cli"
   ],
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.1.3",
     "@types/jest": "^27.4.0",
     "@types/react": "^17.0.39",
     "ava": "^4.0.1",

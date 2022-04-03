@@ -2,6 +2,8 @@ import dts from 'rollup-plugin-dts';
 import esbuild from 'rollup-plugin-esbuild';
 import json from '@rollup/plugin-json';
 import preserveShebang from 'rollup-plugin-preserve-shebang';
+/*import commonjs from '@rollup/plugin-commonjs';
+import { nodeResolve } from '@rollup/plugin-node-resolve';*/
 
 const name = require('./package.json').main.replace(/\.cjs$/, '');
 

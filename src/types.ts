@@ -3,6 +3,10 @@ import { z } from 'zod';
 export const AppOptions = z.object({
   appName: z.string(),
   port: z.number(),
+  /**
+  The domain for the app, eg. skoshx.com.
+  */
+  domain: z.string().optional(),
   path: z.string().default('./').optional(),
   errorFile: z.string().optional(),
   logFile: z.string().optional(),
