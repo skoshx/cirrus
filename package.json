@@ -31,7 +31,7 @@
     "test": "NODE_ENV=test CIRRUS_ROOT=`pwd`/test/cirrus NODE_NO_WARNINGS=1 ava",
     "build": "rimraf dist && rollup -c",
     "build:half": "tsup src/init.ts --format esm",
-		"build:cli": "tsup src/newcli.ts --format esm",
+    "build:cli": "tsup src/newcli.ts --format esm",
     "prepublishOnly": "npm run build",
     "prettier-check": "prettier --check .",
     "format": "prettier --write .",

@@ -4,8 +4,8 @@ import { join } from 'path';
 import { readFileSync, writeFileSync, chmodSync, readdirSync } from 'fs';
 import { z } from 'zod';
 import { tryCatchSync } from './util';
-import pm2, { type ProcessDescription } from 'pm2';
-import type { Proc, StartOptions } from 'pm2';
+import pm2 from 'pm2';
+import type { Proc, StartOptions, ProcessDescription } from 'pm2';
 import publicIp from 'public-ip';
 import { userInfo } from 'os';
 import type { Pm2AppInfo } from './process';
@@ -61,9 +61,9 @@ export function isValidProjectConfig(projects: Project[]) {
   if (uniquePorts.length !== ports.length)
     throw Error('Two or more deployments have the same port number!');
   // return ProjectSchema.parse(projects);
-	// TODO check that no deployment names collide
-	// TODO check that no domains collide
-	console.log("TODO check that no deployment names or domains collide")
+  // TODO check that no deployment names collide
+  // TODO check that no domains collide
+  console.log('TODO check that no deployment names or domains collide');
   return true;
 }
 
@@ -71,7 +71,14 @@ export function getProjectConfig(projectName: string): Project {
   const { data, error } = tryCatchSync(() =>
     readFileSync(join(ROOT_CIRRUS_PATH, projectName, 'cirrus.json')),
   );
-  if (error) throw Error(`could not find cirrus config file in path ${join(ROOT_CIRRUS_PATH, projectName, 'cirrus.json')}`);
+  if (error)
+    throw Error(
+      `could not find cirrus config file in path ${join(
+        ROOT_CIRRUS_PATH,
+        projectName,
+        'cirrus.json',
+      )}`,
+    );
   // TODO check that cirrus config is valid…
   const { error: projectConfigParseError } = tryCatchSync(() =>
     isValidProjectConfig(JSON.parse(data)),
@@ -170,15 +177,17 @@ export async function initProject(projectName: string) {
   // create repository for project
   execaCommandSync(`git init ${join(ROOT_CIRRUS_PATH, projectName)}`);
 
-	// make it possible to push to the non-bare repository
-	execaCommandSync('git config receive.denyCurrentBranch updateInstead', { cwd: join(ROOT_CIRRUS_PATH, projectName) });
+  // make it possible to push to the non-bare repository
+  execaCommandSync('git config receive.denyCurrentBranch updateInstead', {
+    cwd: join(ROOT_CIRRUS_PATH, projectName),
+  });
 
   // write post-receive hook
   writeHook(projectName);
 
-	// create basic cirrus.json?? -> we can't,
-	// because then the git history is dirty, which
-	// blocks pushes… TODO fix this
+  // create basic cirrus.json?? -> we can't,
+  // because then the git history is dirty, which
+  // blocks pushes… TODO fix this
 }
 
 export function writeHook(projectName: string) {
@@ -194,51 +203,56 @@ export function writeHook(projectName: string) {
 }
 
 export interface ProjectInfo {
-	remote: string;
-	ports: number[];
+  remote: string;
+  ports: number[];
 }
 
 export async function getProjectInfo(projectName: string) {
-	const config = getProjectConfig(projectName);
-	if (!config) throw Error(`Project with name ${projectName} does not exist.`);
+  const config = getProjectConfig(projectName);
+  if (!config) throw Error(`Project with name ${projectName} does not exist.`);
 
-	const externalIp = await publicIp.v4();
-	const remote = `ssh://${userInfo().username}@${externalIp}${getWorkingDir(projectName)}`;
-	const ports = config.deployments.map((deployment) => deployment.port);
-	return { remote, ports };
+  const externalIp = await publicIp.v4();
+  const remote = `ssh://${userInfo().username}@${externalIp}${getWorkingDir(
+    projectName,
+  )}`;
+  const ports = config.deployments.map((deployment) => deployment.port);
+  return { remote, ports };
 }
 
 export function getProjects(): Project[] {
-	const projects: Project[] = [];
-	const appFolders = readdirSync(ROOT_CIRRUS_PATH, { withFileTypes: true })
-		.filter((ent) => ent.isDirectory())
-		.map((ent) => ent.name);
-	
-	for (const projectName of appFolders) {
-		const config = getProjectConfig(projectName);
-		projects.push(config);
-	}
-	return projects;
+  const projects: Project[] = [];
+  const appFolders = readdirSync(ROOT_CIRRUS_PATH, { withFileTypes: true })
+    .filter((ent) => ent.isDirectory())
+    .map((ent) => ent.name);
+
+  for (const projectName of appFolders) {
+    const config = getProjectConfig(projectName);
+    projects.push(config);
+  }
+  return projects;
 }
 
 export async function getDeployments(): Promise<(Deployment & Pm2AppInfo)[]> {
-	const projects: Project[] = getProjects();
-	const deployments: Deployment[] = projects.reduce((prev: Deployment[], curr) => [...prev, ...curr.deployments], []);
+  const projects: Project[] = getProjects();
+  const deployments: Deployment[] = projects.reduce(
+    (prev: Deployment[], curr) => [...prev, ...curr.deployments],
+    [],
+  );
 
-	const appInfos: (Deployment & Pm2AppInfo)[] = [];
+  const appInfos: (Deployment & Pm2AppInfo)[] = [];
 
-	for (let i = 0; i < deployments.length; i++) {
-		const pm2AppInfo = await getPm2AppInfoNew(deployments[i].name);
-		appInfos.push({
-			...deployments[i],
-			...pm2AppInfo
-		});
-	}
-	return appInfos;
+  for (let i = 0; i < deployments.length; i++) {
+    const pm2AppInfo = await getPm2AppInfoNew(deployments[i].name);
+    appInfos.push({
+      ...deployments[i],
+      ...pm2AppInfo,
+    });
+  }
+  return appInfos;
 }
 
 async function getPm2AppInfoNew(deploymentName: string): Promise<Pm2AppInfo> {
-	return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     pm2.list((err: Error, procList: ProcessDescription[]) => {
       if (err) reject(err);
       const proc: ProcessDescription | undefined = procList.find(

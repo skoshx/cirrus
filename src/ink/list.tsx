@@ -5,7 +5,7 @@ import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { cpu, memory, statusToColor, time } from '../formatting';
 import type { AppInfo, Pm2AppInfo } from '../process';
-import { getDeployments, type Deployment } from '../init';
+import { getDeployments, Deployment } from '../init';
 
 export const Table = () => {
   const [infos, setInfos] = useState<(Deployment & Pm2AppInfo)[]>([]);
