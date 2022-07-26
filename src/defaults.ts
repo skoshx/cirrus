@@ -15,6 +15,9 @@ export function getDefaultGlobalEnvironment() {
   };
 }
 
+export const ROOT_CIRRUS_PATH =
+  process.env.CIRRUS_ROOT ?? join(process.env.HOME ?? homedir(), 'cirrus');
+
 export const defaultOptions: PushOptionsType = {
   root:
     process.env.CIRRUS_ROOT ?? join(process.env.HOME ?? homedir(), 'cirrus'),

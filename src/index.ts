@@ -4,9 +4,10 @@ import { writeFileSync, readFileSync, mkdirSync, chmodSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { promisify } from 'util';
-import pm2, { Proc, ProcessDescription, StartOptions } from 'pm2';
+import pm2 from 'pm2';
+import type { Proc, StartOptions } from 'pm2';
 import publicIp from 'public-ip';
-import { AppOptions, AppOptionsType } from './types';
+import type { AppOptions, AppOptionsType } from './types';
 import { getGlobalOptions, getProcessApp, getRepository } from './process';
 import {
   getConfig,

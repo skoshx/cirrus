@@ -1,0 +1,9 @@
+- Plugins
+  - Plugins work in such a way: Plugins are ever-present, passed to all functions `create`, `delete`, `createHook`, and then the plugin is called after all transformations are made…
+  - Plugins can insert ENV variables to all programs; for instance, if we have POSTGRES plugin, then maybe we have a `POSTGRES_CONNECTION_URL` env variable passed to all programs. What ENV variables are exposed needs to be documented by the plugin.
+  - Automatic Caddy server configuration plugin
+    - Add path to CERT files to ENV
+    - domain is determined in DEPLYOMENT section,
+  - Automatic Postgres configuration plugin
+    - Add connection url to ENV
+  - Firewall setup plugin

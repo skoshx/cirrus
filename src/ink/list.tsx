@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { cpu, memory, statusToColor, time } from '../formatting';
-import { AppInfo, listApps, Pm2AppInfo } from '../process';
+import type { AppInfo, Pm2AppInfo } from '../process';
+import { getDeployments, type Deployment } from '../init';
 
-export const Table = ({ apps: appsx }: { apps: (AppInfo & Pm2AppInfo)[] }) => {
-  const [infos, setInfos] = useState<(AppInfo & Pm2AppInfo)[]>([]);
+export const Table = () => {
+  const [infos, setInfos] = useState<(Deployment & Pm2AppInfo)[]>([]);
 
   const { isRawModeSupported } = useStdin();
 
@@ -23,12 +24,13 @@ export const Table = ({ apps: appsx }: { apps: (AppInfo & Pm2AppInfo)[] }) => {
 
   useEffect(() => {
     const timer = setInterval(async () => {
-      const apps = await listApps();
-      setInfos(apps ?? []);
+      const deployments = await getDeployments();
+      setInfos(deployments ?? []);
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
+
   return (
     <Box
       flexDirection="column"
@@ -87,9 +89,9 @@ export const Table = ({ apps: appsx }: { apps: (AppInfo & Pm2AppInfo)[] }) => {
       ) : null}
 
       {infos.map((app) => (
-        <Box key={app.appName} justifyContent={'space-between'} paddingTop={1}>
+        <Box key={app.name} justifyContent={'space-between'} paddingTop={1}>
           <Box width={fixedWidth}>
-            <Text>{app.appName}</Text>
+            <Text>{app.name}</Text>
           </Box>
           <Box width={fixedWidth}>
             <Text>{app.port}</Text>
@@ -114,8 +116,6 @@ export const Table = ({ apps: appsx }: { apps: (AppInfo & Pm2AppInfo)[] }) => {
   );
 };
 
-export function renderList(apps: (AppInfo & Pm2AppInfo)[]) {
-  render(<Table apps={apps} />);
+export function renderList(apps: (Deployment & Pm2AppInfo)[]) {
+  render(<Table />);
 }
-
-// render(<Table />);

@@ -1,6 +1,6 @@
 // functions for generating Caddyfile from Cirrus configuration
 
-import { AppOptionsType } from './types';
+import type { AppOptionsType } from './types';
 import { getConfig } from './util';
 import { readFileSync } from 'fs';
 

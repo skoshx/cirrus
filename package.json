@@ -4,8 +4,8 @@
   "description": "Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Evan You's pod.",
   "repository": "skoshx/cirrus",
   "bin": {
-    "cirrus": "./dist/index.cli.mjs",
-    "cirrus2": "./dist/index.cli.mjs"
+    "cirrus": "./dist/newcli.js",
+    "cirrus2": "./dist/newcli.js"
   },
   "main": "./dist/index.cjs",
   "type": "module",
@@ -30,6 +30,8 @@
   "scripts": {
     "test": "NODE_ENV=test CIRRUS_ROOT=`pwd`/test/cirrus NODE_NO_WARNINGS=1 ava",
     "build": "rimraf dist && rollup -c",
+    "build:half": "tsup src/init.ts --format esm",
+		"build:cli": "tsup src/newcli.ts --format esm",
     "prepublishOnly": "npm run build",
     "prettier-check": "prettier --check .",
     "format": "prettier --write .",
@@ -67,6 +69,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.1.3",
     "@types/jest": "^27.4.0",
+    "@types/node": "^18.6.1",
     "@types/react": "^17.0.39",
     "ava": "^4.0.1",
     "esbuild": "^0.14.18",
@@ -79,13 +82,14 @@
     "rollup-plugin-preserve-shebang": "^1.0.1",
     "ts-jest": "^27.1.3",
     "ts-node": "^10.7.0",
-    "typescript": "4.4.2"
+    "tsup": "^6.2.0",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "cli-spinners": "^2.6.1",
     "execa": "^6.1.0",
     "ink": "^3.2.0",
-    "meow": "https://github.com/skoshx/meow",
+    "meow": "github:aaronccasanova/meow#381402f6744311cf6f0cd106424e5f432acde0c2",
     "ms": "3.0.0-canary.1",
     "pm2": "^5.2.0",
     "public-ip": "^5.0.0",

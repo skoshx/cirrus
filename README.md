@@ -109,15 +109,43 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## TODO
 
-- Monorepo support…
-  - Every "app" is a list of apps (AppOptions[]).
-  - Every AppOptions definition has their own env, commands etc…
+2 approaches
+
+GitHub pull with Webhooks
+
+Setup:
+-> cirrus init skoshx/reponame -> Get access with github personal access token… (kind of struggle)
+-> this does git clone
+-> setup github webhook (kind of struggle)
+-> push to github, and everything gets magically deployed…
+-> what if access token expires?
+
+Git repository on server --> I think we're going with this…
+-> cirrus init projectname
+-> creates bare git repo
+-> on user's local machine `git remote add deploy ssh://someip.com/srv/repo.git` (kind of struggle)
+-> to deploy, `git push deploy`
+
+- A function for checking validity of a project file (non-conflicting project names, non conflicting ports)
+
+- Cirrus project file inside GitHub repo (project name cannot have spaces)
+- How do we inject/store environment variables?
+  -> we can just have one file with all needed .env variables
+  -> one .env file for stuff added by cirrus as well as plugins
+  -> .env file for each project like `mywebsite.env` , loaded accordingly
+- Project file can have multiple deployments (monorepo support)
+- Deployments can have ignore paths? (low priority)
+- Deployments do following 1) git pull 2) run any commands specified in deployment, catching errors and reporting them in user-friendly way. 3) open any ports / firwall (this should be done with a plugin?) 4) Setup domain with Caddyserver if needed…
 - Plugins
   - Plugins work in such a way: Plugins are ever-present, passed to all functions `create`, `delete`, `createHook`, and then the plugin is called after all transformations are made…
+  - Plugins can insert ENV variables to all programs; for instance, if we have POSTGRES plugin, then maybe we have a `POSTGRES_CONNECTION_URL` env variable passed to all programs. What ENV variables are exposed needs to be documented by the plugin.
+  - Automatic Caddy server configuration plugin
+    - Add path to CERT files to ENV
+    - domain is determined in DEPLYOMENT section,
+  - Automatic Postgres configuration plugin
+    - Add connection url to ENV
+  - Firewall setup plugin
 - Improved docs
 - Tests
-- Automatic Caddy server configuration --> Implement as a plugin…
-- Automatic Postgres configuration --> Implement as a plugin
-- Firewall setup --> Implement as a plugin
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.digitaloceanspaces.com/WWW/Badge%202.svg)](https://www.digitalocean.com/?refcode=c8178a5d5ec6&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)

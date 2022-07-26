@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { cpu, memory, statusToColor, time } from '../formatting';
-import { RepositoryInfo } from '../process';
+import type { ProjectInfo } from '../init';
 
-export const Table = ({ info }: { info: RepositoryInfo }) => {
+export const Table = ({ info }: { info: ProjectInfo }) => {
   const { isRawModeSupported } = useStdin();
 
   isRawModeSupported &&
@@ -40,7 +40,7 @@ export const Table = ({ info }: { info: RepositoryInfo }) => {
           Port
         </Text>
         <Text color={'gray'} bold>
-          {info.port.join(', ')}
+          {info.ports.join(', ')}
         </Text>
       </Box>
 
@@ -59,6 +59,6 @@ export const Table = ({ info }: { info: RepositoryInfo }) => {
   );
 };
 
-export function renderInfo(info: RepositoryInfo) {
+export function renderInfo(info: ProjectInfo) {
   render(<Table info={info} />);
 }
