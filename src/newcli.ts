@@ -91,22 +91,22 @@ const cli = meow(
 	$ cirrus [command]
 	
 	Commands
-	create <app>            Create a new app
-	remove <app>            Delete an app
-	start <app>             Start an app monitored by pm2
-	stop <app>              Stop an app
-	restart <app>           Restart an app that's already running
-	info <app>              Shows detailed information about an app
-	update <app>            Update app after modifying it from .cirrusrc
-	setup                   Sets up Cirrus (env, plugins, firewalls)
-	list                    List apps and status
-	prune                   Clean up dead files
-	web [command]           Start/stop/restart the web interface
-	help                    You are reading it right now
+		create <app>            Create a new app
+		remove <app>            Delete an app
+		start <app>             Start an app monitored by pm2
+		stop <app>              Stop an app
+		restart <app>           Restart an app that's already running
+		info <app>              Shows detailed information about an app
+		update <app>            Update app after modifying it from .cirrusrc
+		setup                   Sets up Cirrus (env, plugins, firewalls)
+		list                    List apps and status
+		prune                   Clean up dead files
+		web [command]           Start/stop/restart the web interface
+		help                    You are reading it right now
 	
 	Examples
-	$ cirrus create my-app
-	$ cirrus create --help`,
+		$ cirrus create my-app
+		$ cirrus create --help`,
 	{
 		description: 'Cirrus is a push to deploy tool written above the cirrus clouds.',
 		importMeta: import.meta,
@@ -123,6 +123,3 @@ const cli = meow(
 
 // @ts-ignore
 cli.command.options.handler?.(cli);
-
-// console.log("CLI");
-// console.log(cli);
