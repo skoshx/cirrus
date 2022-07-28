@@ -33,7 +33,7 @@
 		"prettier-check": "prettier --check .",
 		"format": "prettier --write .",
 		"type-check": "tsc --noEmit",
-		"release": "np --preview"
+		"release": "np"
 	},
 	"ava": {
 		"extensions": {
