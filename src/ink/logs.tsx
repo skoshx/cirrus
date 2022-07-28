@@ -1,20 +1,15 @@
-// const React = require('react');
-// const Chance = require('chance');
 import React, { useEffect, useState } from 'react';
-import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
-import { Spinner } from './spinner';
-import { cpu, memory, statusToColor, time } from '../formatting';
-import { AppOptionsType } from '../types';
-import { AppLogs, getLogs } from '../process';
+import { render, Box, Text, useInput, useStdin } from 'ink';
+import { getLogs, NewAppLog } from '../init';
 
 export const Logs = ({
   logs: appLogs,
-  appName,
+  projectName,
 }: {
-  logs: AppLogs[];
-  appName: string;
+  logs: NewAppLog[];
+  projectName: string;
 }) => {
-  const [logs, setLogs] = useState<AppLogs[]>(appLogs);
+  const [logs, setLogs] = useState<NewAppLog[]>(appLogs);
   const { isRawModeSupported } = useStdin();
 
   isRawModeSupported &&
@@ -24,28 +19,28 @@ export const Logs = ({
 
   useEffect(() => {
     const timer = setInterval(async () => {
-      const logs = await getLogs(appName);
+      const logs = await getLogs(projectName);
       setLogs(logs ?? appLogs);
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  const appLogElements = appLogs.map((logs: AppLogs, index: number) => {
+  const appLogElements = logs.map((logs: NewAppLog, index: number) => {
     return (
       <Box
-        key={`${logs.appName}-${index}`}
+        key={`${logs.deploymentName}-${index}`}
         display={'flex'}
         flexDirection={'column'}
       >
         <Box paddingTop={1} paddingBottom={1} flexDirection="column">
           <Text color={'redBright'} bold>
-            Error logs ({logs.appName})
+            Error logs ({logs.deploymentName})
           </Text>
-          {logs.error.length === 0 ? (
+          {logs.errors.length === 0 ? (
             <Text color={'gray'}>No error logs found</Text>
           ) : null}
-          {logs.error.slice(-5).map((log: string, index: number) => (
+          {logs.errors.slice(-15).map((log: string, index: number) => (
             <Text color={'gray'} key={log + index}>
               {log}
             </Text>
@@ -53,13 +48,13 @@ export const Logs = ({
         </Box>
 
         <Box paddingTop={1} paddingBottom={1} flexDirection="column">
-          <Text color={'cyan'} bold>
-            Logs ({logs.appName})
+          <Text color={'white'} bold>
+            Logs ({logs.deploymentName})
           </Text>
-          {logs.log.length === 0 ? (
+          {logs.logs.length === 0 ? (
             <Text color={'gray'}>No logs found</Text>
           ) : null}
-          {logs.log.slice(-5).map((log: string, index: number) => (
+          {logs.logs.slice(-15).map((log: string, index: number) => (
             <Text color={'gray'} key={log + index}>
               {log}
             </Text>
@@ -85,6 +80,6 @@ export const Logs = ({
   );
 };
 
-export function renderLogs(logs: AppLogs[], appName: string) {
-  render(<Logs logs={logs} appName={appName} />);
+export function renderLogs(logs: NewAppLog[], projectName: string) {
+  render(<Logs logs={logs} projectName={projectName} />);
 }

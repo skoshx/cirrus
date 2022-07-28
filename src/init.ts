@@ -9,6 +9,7 @@ import type { Proc, StartOptions, ProcessDescription } from 'pm2';
 import publicIp from 'public-ip';
 import { userInfo } from 'os';
 import type { Pm2AppInfo } from './process';
+import { corePlugins } from './plugins/plugin';
 
 export const DeploymentSchema = z.object({
   path: z.string().default('.'),
@@ -25,6 +26,7 @@ export const DeploymentSchema = z.object({
 export const ProjectSchema = z.object({
   name: z.string(), // TODO check no spaces
   deployments: z.array(DeploymentSchema),
+  plugins: z.array(z.string()).optional(),
 });
 
 export const getLogFilePath = (deployment: Deployment) =>
@@ -63,7 +65,7 @@ export function isValidProjectConfig(projects: Project[]) {
   // return ProjectSchema.parse(projects);
   // TODO check that no deployment names collide
   // TODO check that no domains collide
-  console.log('TODO check that no deployment names or domains collide');
+  // console.log('TODO check that no deployment names or domains collide');
   return true;
 }
 
@@ -147,6 +149,10 @@ export async function deploy(projectName: string) {
   }
   // TODO check that all processes started healthy
   console.log('TODO check that all processes started healthy');
+
+  // run through plugins
+  await corePlugins({ event: 'deploy', project: config });
+
   return processes;
 }
 
@@ -174,6 +180,9 @@ export const getWorkingDir = (projectName: string) =>
   join(ROOT_CIRRUS_PATH, projectName);
 
 export async function initProject(projectName: string) {
+  // TODO check that projectName isn't "logs", check that name doesnt contain spaces
+  // check that name isn't taken
+
   // create repository for project
   execaCommandSync(`git init ${join(ROOT_CIRRUS_PATH, projectName)}`);
 
@@ -184,6 +193,12 @@ export async function initProject(projectName: string) {
 
   // write post-receive hook
   writeHook(projectName);
+
+  // run through plugins
+  console.log(
+    "TODO fix problem that cirrus.json doesn't exist when initializing project",
+  );
+  // await corePlugins({ event: 'init', project: null });
 
   // create basic cirrus.json?? -> we can't,
   // because then the git history is dirty, which
@@ -223,13 +238,43 @@ export function getProjects(): Project[] {
   const projects: Project[] = [];
   const appFolders = readdirSync(ROOT_CIRRUS_PATH, { withFileTypes: true })
     .filter((ent) => ent.isDirectory())
-    .map((ent) => ent.name);
+    .map((ent) => ent.name)
+    .filter((folder) => !['logs'].includes(folder));
 
   for (const projectName of appFolders) {
     const config = getProjectConfig(projectName);
     projects.push(config);
   }
   return projects;
+}
+
+export interface NewAppLog {
+  deploymentName: string;
+  errors: string[]; // error logs
+  logs: string[]; // normal logs
+}
+
+export async function getLogs(projectName: string) {
+  const config = getProjectConfig(projectName);
+  const logs: NewAppLog[] = [];
+  for (let i = 0; i < config.deployments.length; i++) {
+    const { data: error } = tryCatchSync(() =>
+      readFileSync(getErrorLogFilePath(config.deployments[i]))
+        ?.toString('utf-8')
+        ?.split('\n'),
+    );
+    const { data: log } = tryCatchSync(() =>
+      readFileSync(getLogFilePath(config.deployments[i]))
+        ?.toString('utf-8')
+        ?.split('\n'),
+    );
+    logs.push({
+      deploymentName: config.deployments[i].name,
+      errors: error ?? [],
+      logs: log ?? [],
+    });
+  }
+  return logs;
 }
 
 export async function getDeployments(): Promise<(Deployment & Pm2AppInfo)[]> {

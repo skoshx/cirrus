@@ -1,8 +1,15 @@
 import meow from 'meow';
 import type { AnyFlags, Result } from 'meow';
-import { deploy, getDeployments, getProjectInfo, initProject } from './init';
+import {
+  deploy,
+  getDeployments,
+  getLogs,
+  getProjectInfo,
+  initProject,
+} from './init';
 import { renderInfo } from './ink/info';
 import { renderList } from './ink/list';
+import { renderLogs } from './ink/logs';
 
 const init = {
   description: 'Create a new app',
@@ -65,7 +72,11 @@ const logs = {
   helpText: `
 	🌧  Logs - show logs of an app
 	$ cirrus logs <app>`,
-  handler: async (cli: Result<AnyFlags>) => {},
+  handler: async (cli: Result<AnyFlags>) => {
+    const projectName = cli.input[1];
+    const logs = await getLogs(projectName);
+    renderLogs(logs, projectName);
+  },
 };
 
 const info = {
@@ -74,7 +85,6 @@ const info = {
 	🌧  Info - show usable information about a Cirrus app
 	$ cirrus info <app>`,
   handler: async (cli: Result<AnyFlags>) => {
-    // get info
     const projectName = cli.input[1];
     const projectInfo = await getProjectInfo(projectName);
     renderInfo(projectInfo);
