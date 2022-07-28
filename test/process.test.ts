@@ -9,9 +9,9 @@ const test = anyTest as TestFn<TestSuiteType>;
 setupTestSuite(test);
 
 test('process > init', async (t) => {
-  const globalOptions = await initCirrus(t.context.global);
+	const globalOptions = await initCirrus(t.context.global);
 
-  t.deepEqual(globalOptions, t.context.global);
+	t.deepEqual(globalOptions, t.context.global);
 });
 
 /*test.serial('process > get app', async (t) => {

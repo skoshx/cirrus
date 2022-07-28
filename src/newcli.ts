@@ -1,19 +1,13 @@
 import meow from 'meow';
 import type { AnyFlags, Result } from 'meow';
-import {
-  deploy,
-  getDeployments,
-  getLogs,
-  getProjectInfo,
-  initProject,
-} from './init';
+import { deploy, getDeployments, getLogs, getProjectInfo, initProject } from './init';
 import { renderInfo } from './ink/info';
 import { renderList } from './ink/list';
 import { renderLogs } from './ink/logs';
 
 const init = {
-  description: 'Create a new app',
-  helpText: `
+	description: 'Create a new app',
+	helpText: `
 	🌧  Create - allows you to create a cloud app either from a local repository or a GitHub remote.
 	$ cirrus create [options]
 	
@@ -21,21 +15,21 @@ const init = {
 		--environment, -e       Path to an .env file to source when creating app
 		--remote, -r            Create an app from a GitHub remote
 	`,
-  flags: {
-    environment: { type: 'string', alias: 'e' },
-    remote: { type: 'string', alias: 'r' },
-  },
-  handler: async (cli: Result<AnyFlags>) => {
-    const projectName = cli.input[1];
-    const result = await initProject(projectName);
-    console.log('init project resutl : ');
-    console.log(result);
-  },
+	flags: {
+		environment: { type: 'string', alias: 'e' },
+		remote: { type: 'string', alias: 'r' }
+	},
+	handler: async (cli: Result<AnyFlags>) => {
+		const projectName = cli.input[1];
+		const result = await initProject(projectName);
+		console.log('init project resutl : ');
+		console.log(result);
+	}
 };
 
 const deployCli = {
-  description: 'Deploy your app',
-  helpText: `
+	description: 'Deploy your app',
+	helpText: `
 	🌧  Deploy - deployes your app according to your Cirrus config.
 	$ cirrus deploy [options]
 	
@@ -43,56 +37,56 @@ const deployCli = {
 		--environment, -e       Path to an .env file to source when creating app
 		--remote, -r            Create an app from a GitHub remote
 	`,
-  flags: {
-    environment: { type: 'string', alias: 'e' },
-    remote: { type: 'string', alias: 'r' },
-  },
-  handler: async (cli: Result<AnyFlags>) => {
-    const projectName = cli.input[1];
-    const result = await deploy(projectName);
-    console.log('Result ');
-    console.log(result);
-    // renderList(await listApps());
-  },
+	flags: {
+		environment: { type: 'string', alias: 'e' },
+		remote: { type: 'string', alias: 'r' }
+	},
+	handler: async (cli: Result<AnyFlags>) => {
+		const projectName = cli.input[1];
+		const result = await deploy(projectName);
+		console.log('Result ');
+		console.log(result);
+		// renderList(await listApps());
+	}
 };
 
 const list = {
-  description: 'List all your apps',
-  helpText: `
+	description: 'List all your apps',
+	helpText: `
 	🌧 List - lists all Cirrus apps.
 	$ cirrus list`,
-  handler: async (cli: Result<AnyFlags>) => {
-    const deployments = await getDeployments();
-    renderList(deployments);
-  },
+	handler: async (cli: Result<AnyFlags>) => {
+		const deployments = await getDeployments();
+		renderList(deployments);
+	}
 };
 
 const logs = {
-  description: 'Show logs of an app',
-  helpText: `
+	description: 'Show logs of an app',
+	helpText: `
 	🌧  Logs - show logs of an app
 	$ cirrus logs <app>`,
-  handler: async (cli: Result<AnyFlags>) => {
-    const projectName = cli.input[1];
-    const logs = await getLogs(projectName);
-    renderLogs(logs, projectName);
-  },
+	handler: async (cli: Result<AnyFlags>) => {
+		const projectName = cli.input[1];
+		const logs = await getLogs(projectName);
+		renderLogs(logs, projectName);
+	}
 };
 
 const info = {
-  description: 'Show usable information about a Cirrus app',
-  helpText: `
+	description: 'Show usable information about a Cirrus app',
+	helpText: `
 	🌧  Info - show usable information about a Cirrus app
 	$ cirrus info <app>`,
-  handler: async (cli: Result<AnyFlags>) => {
-    const projectName = cli.input[1];
-    const projectInfo = await getProjectInfo(projectName);
-    renderInfo(projectInfo);
-  },
+	handler: async (cli: Result<AnyFlags>) => {
+		const projectName = cli.input[1];
+		const projectInfo = await getProjectInfo(projectName);
+		renderInfo(projectInfo);
+	}
 };
 
 const cli = meow(
-  `
+	`
 	🌧  Usage
 	$ cirrus [command]
 	
@@ -113,19 +107,18 @@ const cli = meow(
 	Examples
 	$ cirrus create my-app
 	$ cirrus create --help`,
-  {
-    description:
-      'Cirrus is a push to deploy tool written above the cirrus clouds.',
-    importMeta: import.meta,
-    // @ts-ignore
-    commands: {
-      init,
-      deploy: deployCli,
-      list,
-      logs,
-      info,
-    },
-  },
+	{
+		description: 'Cirrus is a push to deploy tool written above the cirrus clouds.',
+		importMeta: import.meta,
+		// @ts-ignore
+		commands: {
+			init,
+			deploy: deployCli,
+			list,
+			logs,
+			info
+		}
+	}
 );
 
 // @ts-ignore

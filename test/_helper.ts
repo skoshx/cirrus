@@ -8,66 +8,65 @@ import { dirname } from 'path';
 import ms from 'ms';
 
 export interface TestSuiteType {
-  global: PushOptionsType;
-  app: AppOptionsType[];
-  monorepo: AppOptionsType[];
+	global: PushOptionsType;
+	app: AppOptionsType[];
+	monorepo: AppOptionsType[];
 }
 
 export const __testDirname = dirname(fileURLToPath(import.meta.url));
 
 export function setupTestSuite(
-  test: TestFn<TestSuiteType>,
-  before?: (t: ExecutionContext<TestSuiteType>) => void,
-  after?: (t: ExecutionContext<TestSuiteType>) => void,
+	test: TestFn<TestSuiteType>,
+	before?: (t: ExecutionContext<TestSuiteType>) => void,
+	after?: (t: ExecutionContext<TestSuiteType>) => void
 ) {
-  test.before(async (t) => {
-    t.context.global = {
-      root: join(__testDirname, 'cirrus'),
-      env: { NODE_ENV: 'test' },
-      minUptime: ms('1h'),
-      maxRestarts: 10,
-      repos: [],
-    };
+	test.before(async (t) => {
+		t.context.global = {
+			root: join(__testDirname, 'cirrus'),
+			env: { NODE_ENV: 'test' },
+			minUptime: ms('1h'),
+			maxRestarts: 10,
+			repos: []
+		};
 
-    // delete cirrus folder if exists
-    if (existsSync(t.context.global.root))
-      rmSync(t.context.global.root, { recursive: true });
+		// delete cirrus folder if exists
+		if (existsSync(t.context.global.root)) rmSync(t.context.global.root, { recursive: true });
 
-    await initCirrus(t.context.global);
+		await initCirrus(t.context.global);
 
-    t.context.app = [
-      {
-        appName: 'app',
-        port: 3000,
-        commands: ['npm install', 'npm run build'],
-        env: {},
-      },
-    ];
+		t.context.app = [
+			{
+				appName: 'app',
+				port: 3000,
+				commands: ['npm install', 'npm run build'],
+				env: {}
+			}
+		];
 
-    t.context.monorepo = [
-      {
-        appName: 'monorepo-app',
-        port: 3000,
-        path: 'apps/web',
-        commands: ['npm install', 'npm run build'],
-      },
-      {
-        appName: 'monorepo-api',
-        port: 3001,
-        path: 'apps/api',
-        commands: ['npm install', 'npm run build'],
-        env: {
-          NODE_ENV: 'production',
-          SECRET_KEY: 'abcd',
-        },
-      },
-    ];
+		t.context.monorepo = [
+			{
+				appName: 'monorepo-app',
+				port: 3000,
+				path: 'apps/web',
+				commands: ['npm install', 'npm run build']
+			},
+			{
+				appName: 'monorepo-api',
+				port: 3001,
+				path: 'apps/api',
+				commands: ['npm install', 'npm run build'],
+				env: {
+					NODE_ENV: 'production',
+					SECRET_KEY: 'abcd'
+				}
+			}
+		];
 
-    if (before) await before(t);
-  });
+		if (before) await before(t);
+	});
 
-  test.after(async (t) => {
-    rmSync(join(__testDirname, 'cirrus'), { recursive: true, force: true });
-    if (after) await after(t);
-  });
+	test.after(async (t) => {
+		rmSync(join(__testDirname, 'cirrus'), { recursive: true, force: true });
+		if (after) await after(t);
+	});
 }

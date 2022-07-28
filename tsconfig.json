@@ -1,26 +1,21 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
-    "isolatedModules": true,
-    // "preserveValueImports": true,
-    "lib": ["esnext", "DOM"],
-    "moduleResolution": "node",
-    "module": "esnext",
-    "target": "esnext",
-    "jsx": "react"
-  },
-  "include": [
-    "./src/**/*.js",
-    "./src/**/*.ts",
-    "./test/**/*.ts",
-    "./test/**/*.js"
-  ],
-  "exclude": ["./node_modules/**"]
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+		"isolatedModules": true,
+		// "preserveValueImports": true,
+		"lib": ["esnext", "DOM"],
+		"moduleResolution": "node",
+		"module": "esnext",
+		"target": "esnext",
+		"jsx": "react"
+	},
+	"include": ["./src/**/*.js", "./src/**/*.ts", "./test/**/*.ts", "./test/**/*.js"],
+	"exclude": ["./node_modules/**"]
 }

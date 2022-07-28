@@ -7,25 +7,25 @@ import { join } from 'path';
 import { defaultOptions } from './defaults';
 
 export function isPortTaken(port: number) {
-  const takenPorts: number[] = [];
-  const options = getGlobalOptions();
-  for (let i = 0; i < options.repos.length; i++) {
-    takenPorts.push(...options.repos[i].apps.map((app) => app.port));
-  }
-  return takenPorts.includes(port);
+	const takenPorts: number[] = [];
+	const options = getGlobalOptions();
+	for (let i = 0; i < options.repos.length; i++) {
+		takenPorts.push(...options.repos[i].apps.map((app) => app.port));
+	}
+	return takenPorts.includes(port);
 }
 
 export function getAvailablePort(port?: number): number {
-  if (port && isPortTaken(port))
-    throw Error(`Cannot use port ${port}, as it is used by another app.`);
-  port = 3000;
-  while (isPortTaken(port)) port++;
-  return port;
+	if (port && isPortTaken(port))
+		throw Error(`Cannot use port ${port}, as it is used by another app.`);
+	port = 3000;
+	while (isPortTaken(port)) port++;
+	return port;
 }
 
 export interface TryCatchResponse<T = unknown> {
-  data: T | null;
-  error: any;
+	data: T | null;
+	error: any;
 }
 
 /**
@@ -45,55 +45,43 @@ export interface TryCatchResponse<T = unknown> {
  * @returns { TryCatchResponse<T> } An object with keys `data` & `error`.
  */
 export async function tryCatch<T = unknown>(
-  fn: (() => T) | Promise<T> | (() => Promise<T> | T),
+	fn: (() => T) | Promise<T> | (() => Promise<T> | T)
 ): Promise<TryCatchResponse<T>> {
-  try {
-    return { data: fn instanceof Promise ? await fn : await fn(), error: null };
-  } catch (error) {
-    return { data: null, error };
-  }
+	try {
+		return { data: fn instanceof Promise ? await fn : await fn(), error: null };
+	} catch (error) {
+		return { data: null, error };
+	}
 }
 export function tryCatchSync<T = unknown>(fn: () => T): TryCatchResponse<T> {
-  try {
-    return { data: fn(), error: null };
-  } catch (error) {
-    return { data: null, error };
-  }
+	try {
+		return { data: fn(), error: null };
+	} catch (error) {
+		return { data: null, error };
+	}
 }
 
 export const clone = (obj: any) => JSON.parse(JSON.stringify(obj));
 
 // Use NodeJS built in functionality for checking value equality
 export async function deepEqual(a: any, b: any) {
-  const { error } = tryCatchSync(() => deepStrictEqual(a, b));
-  return error === null;
+	const { error } = tryCatchSync(() => deepStrictEqual(a, b));
+	return error === null;
 }
 
 export function saveConfig(config: PushOptionsType) {
-  config = PushOptions.parse(config);
-  mkdirSync(config.root, { recursive: true });
-  writeFileSync(
-    join(config.root, '.cirrusrc'),
-    JSON.stringify(config, null, 2),
-  );
+	config = PushOptions.parse(config);
+	mkdirSync(config.root, { recursive: true });
+	writeFileSync(join(config.root, '.cirrusrc'), JSON.stringify(config, null, 2));
 }
 
-export function getConfig(
-  configPath: string = defaultOptions.root,
-): PushOptionsType {
-  const { data } = tryCatchSync(() =>
-    readFileSync(join(configPath, '.cirrusrc'), 'utf-8'),
-  );
-  if (!data)
-    throw Error(
-      '.cirrusrc file does not exist. Did you forget to call `initCirrus()`?',
-    );
-  return JSON.parse(data);
+export function getConfig(configPath: string = defaultOptions.root): PushOptionsType {
+	const { data } = tryCatchSync(() => readFileSync(join(configPath, '.cirrusrc'), 'utf-8'));
+	if (!data) throw Error('.cirrusrc file does not exist. Did you forget to call `initCirrus()`?');
+	return JSON.parse(data);
 }
 
-export const getWorkPath = (appName: string) =>
-  join(getGlobalOptions().root, 'apps', appName);
+export const getWorkPath = (appName: string) => join(getGlobalOptions().root, 'apps', appName);
 export const getRepoPath = (appName: string) =>
-  join(getGlobalOptions().root, 'repos', appName + '.git');
-export const getLogPath = (appName: string) =>
-  join(getGlobalOptions().root, 'logs', appName);
+	join(getGlobalOptions().root, 'repos', appName + '.git');
+export const getLogPath = (appName: string) => join(getGlobalOptions().root, 'logs', appName);

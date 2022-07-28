@@ -66,11 +66,11 @@ cirrus start monorepo
 `;
 
 test('hooks > app', async (t) => {
-  const hook = createHook('app', t.context.app);
-  t.is(hook, appHook(t));
+	const hook = createHook('app', t.context.app);
+	t.is(hook, appHook(t));
 });
 
 test('hooks > monorepo', async (t) => {
-  const hook = createHook('monorepo', t.context.monorepo);
-  t.is(hook, monorepoHook(t));
+	const hook = createHook('monorepo', t.context.monorepo);
+	t.is(hook, monorepoHook(t));
 });

@@ -8,21 +8,21 @@ import { removeApp, startApp, stopApp, stopRepository } from '.';
 import { getAvailablePort, getLogPath, getRepoPath, tryCatch } from './util';
 import { defaultOptions, getDefaultGlobalEnvironment } from './defaults';
 import {
-  getApp,
-  getLogs,
-  listApps,
-  initCirrus,
-  AppInfo,
-  getRepositoryInfo,
-  getRepository,
+	getApp,
+	getLogs,
+	listApps,
+	initCirrus,
+	AppInfo,
+	getRepositoryInfo,
+	getRepository
 } from './process';
 import { createApp, updateHook } from './create';
 import { createHook } from './hooks';
 
 const create = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Create - allows you to create a cloud app either from a local repository or a GitHub remote.
 	$ cirrus create [options]
 
@@ -33,49 +33,49 @@ const create = (options: Options<AnyFlags>) =>
     --remote, -r            Create an app from a GitHub remote
     --script, -s            Path to the start script. Defaults to 'build/index.js'
   `,
-    flags: {
-      port: { type: 'number', alias: 'p' },
-      domain: { type: 'string', alias: 'd' },
-      environment: { type: 'string', alias: 'e' },
-      remote: { type: 'string', alias: 'r' },
-      script: { type: 'string', alias: 's' },
-    },
-  });
+		flags: {
+			port: { type: 'number', alias: 'p' },
+			domain: { type: 'string', alias: 'd' },
+			environment: { type: 'string', alias: 'e' },
+			remote: { type: 'string', alias: 'r' },
+			script: { type: 'string', alias: 's' }
+		}
+	});
 
 const remove = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Remove - remove a Cirrus app
 	$ cirrus remove <app>
-  `,
-  });
+  `
+	});
 
 const stop = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Stop - stop a Cirrus app
 	$ cirrus stop <app>
 
   Options
     --repository, -r        Stop all apps in the repository
-  `,
-  });
+  `
+	});
 
 const info = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Info - show usable information about a Cirrus app
 	$ cirrus info <app>
-  `,
-  });
+  `
+	});
 
 const start = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Start - start a Cirrus app with optional flags
 	$ cirrus create [options]
 
@@ -83,35 +83,35 @@ const start = (options: Options<AnyFlags>) =>
     --port, -p              Port to use for your app
     --environment, -e       Path to an .env file to source when creating app
   `,
-    flags: {
-      port: { type: 'number', alias: 'p' },
-      environment: { type: 'string', alias: 'e' },
-    },
-  });
+		flags: {
+			port: { type: 'number', alias: 'p' },
+			environment: { type: 'string', alias: 'e' }
+		}
+	});
 
 const restart = (options: Options<AnyFlags>) => {
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Restart - Restart a Cirrus app
 	$ cirrus restart <app>
-  `,
-  });
+  `
+	});
 };
 
 const list = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  List - list all Cirrus apps
 	$ cirrus list <app>
-  `,
-  });
+  `
+	});
 
 const web = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Web - a web interface to monitor your apps
 	$ cirrus web [options]
 
@@ -120,17 +120,17 @@ const web = (options: Options<AnyFlags>) =>
     --start,                Start web service
     --stop,                 Stop web service
   `,
-    flags: {
-      port: { type: 'number', alias: 'p' },
-      start: { type: 'boolean' },
-      stop: { type: 'boolean' },
-    },
-  });
+		flags: {
+			port: { type: 'number', alias: 'p' },
+			start: { type: 'boolean' },
+			stop: { type: 'boolean' }
+		}
+	});
 
 const logs = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Logs - show logs of an app
   $ cirrus logs <app>
 
@@ -139,17 +139,17 @@ const logs = (options: Options<AnyFlags>) =>
     --start,                Start web service
     --stop,                 Stop web service
   `,
-    flags: {
-      port: { type: 'number', alias: 'p' },
-      start: { type: 'boolean' },
-      stop: { type: 'boolean' },
-    },
-  });
+		flags: {
+			port: { type: 'number', alias: 'p' },
+			start: { type: 'boolean' },
+			stop: { type: 'boolean' }
+		}
+	});
 
 const update = (options: Options<AnyFlags>) =>
-  meow({
-    ...options,
-    help: `
+	meow({
+		...options,
+		help: `
   🌧  Update - update everything after modifying .cirrusrc
   $ cirrus update <app>
 
@@ -158,15 +158,15 @@ const update = (options: Options<AnyFlags>) =>
     --start,                Start web service
     --stop,                 Stop web service
   `,
-    flags: {
-      port: { type: 'number', alias: 'p' },
-      start: { type: 'boolean' },
-      stop: { type: 'boolean' },
-    },
-  });
+		flags: {
+			port: { type: 'number', alias: 'p' },
+			start: { type: 'boolean' },
+			stop: { type: 'boolean' }
+		}
+	});
 
 const cli = meow(
-  `
+	`
   🌧  Usage
 	$ cirrus [command]
 
@@ -187,121 +187,113 @@ const cli = meow(
 	Examples
     $ cirrus create my-app
     $ cirrus create --help`,
-  {
-    importMeta: import.meta,
-    commands: {
-      // @ts-ignore
-      create,
-      // @ts-ignore
-      remove,
-      // @ts-ignore
-      stop,
-      // @ts-ignore
-      start,
-      // @ts-ignore
-      restart,
-      // @ts-ignore
-      list,
-      // @ts-ignore
-      info,
-      // @ts-ignore
-      web,
-      // @ts-ignore
-      logs,
-      // @ts-ignore
-      update,
-    },
-  },
+	{
+		importMeta: import.meta,
+		commands: {
+			// @ts-ignore
+			create,
+			// @ts-ignore
+			remove,
+			// @ts-ignore
+			stop,
+			// @ts-ignore
+			start,
+			// @ts-ignore
+			restart,
+			// @ts-ignore
+			list,
+			// @ts-ignore
+			info,
+			// @ts-ignore
+			web,
+			// @ts-ignore
+			logs,
+			// @ts-ignore
+			update
+		}
+	}
 );
 
 const subcommands: Record<string, any> = {
-  create: async (cli: Result<any>) => {
-    const port = getAvailablePort(cli.flags.port as undefined);
-    const { error } = await tryCatch(
-      createApp(cli.input[0], [
-        {
-          port,
-          env: {
-            ...getDefaultGlobalEnvironment(),
-            PORT: port.toString(),
-          },
-          appName: cli.input[0],
-          ...(cli.flags.domain !== undefined && { domain: '' }),
-        },
-      ]),
-    );
+	create: async (cli: Result<any>) => {
+		const port = getAvailablePort(cli.flags.port as undefined);
+		const { error } = await tryCatch(
+			createApp(cli.input[0], [
+				{
+					port,
+					env: {
+						...getDefaultGlobalEnvironment(),
+						PORT: port.toString()
+					},
+					appName: cli.input[0],
+					...(cli.flags.domain !== undefined && { domain: '' })
+				}
+			])
+		);
 
-    if (error) return logError(error);
+		if (error) return logError(error);
 
-    renderList(await listApps());
-  },
-  remove: async (cli: Result<any>) => {
-    const { error } = await tryCatch(removeApp(cli.input[0]));
-    if (error) return logError(error);
-    if (await listApps()) renderList(await listApps());
-  },
-  stop: async (cli: Result<any>) => {
-    const { error } = await tryCatch(
-      cli.flags.repository
-        ? stopRepository(cli.flags.repository as string)
-        : stopApp(cli.input[0]),
-    );
-    if (error) return logError(error);
-    if (await listApps()) renderList(await listApps());
-  },
-  start: async (cli: Result<any>) => {
-    const { error } = await tryCatch(startApp(cli.input[0]));
-    if (error) return logError(error);
-    renderList(await listApps());
-  },
-  restart: async (cli: Result<any>) => {
-    const { error } = await tryCatch(stopApp(cli.input[0]));
-    if (error) return logError(error);
-    const { error: startError } = await tryCatch(startApp(cli.input[0]));
-    if (startError) return logError(startError);
-    if (await listApps()) renderList(await listApps());
-  },
-  list: async (cli: Result<any>) => {
-    const { data, error } = await tryCatch(listApps());
-    if (error) return logError(error);
-    if (data) renderList(data);
-  },
-  info: async (cli: Result<any>) => {
-    const repository = getRepository(cli.input[0]);
-    if (!repository)
-      return logError(
-        new Error(`Repository named ${cli.input[0]} does not exist.`),
-      );
+		renderList(await listApps());
+	},
+	remove: async (cli: Result<any>) => {
+		const { error } = await tryCatch(removeApp(cli.input[0]));
+		if (error) return logError(error);
+		if (await listApps()) renderList(await listApps());
+	},
+	stop: async (cli: Result<any>) => {
+		const { error } = await tryCatch(
+			cli.flags.repository ? stopRepository(cli.flags.repository as string) : stopApp(cli.input[0])
+		);
+		if (error) return logError(error);
+		if (await listApps()) renderList(await listApps());
+	},
+	start: async (cli: Result<any>) => {
+		const { error } = await tryCatch(startApp(cli.input[0]));
+		if (error) return logError(error);
+		renderList(await listApps());
+	},
+	restart: async (cli: Result<any>) => {
+		const { error } = await tryCatch(stopApp(cli.input[0]));
+		if (error) return logError(error);
+		const { error: startError } = await tryCatch(startApp(cli.input[0]));
+		if (startError) return logError(startError);
+		if (await listApps()) renderList(await listApps());
+	},
+	list: async (cli: Result<any>) => {
+		const { data, error } = await tryCatch(listApps());
+		if (error) return logError(error);
+		if (data) renderList(data);
+	},
+	info: async (cli: Result<any>) => {
+		const repository = getRepository(cli.input[0]);
+		if (!repository) return logError(new Error(`Repository named ${cli.input[0]} does not exist.`));
 
-    const repoInfo = await getRepositoryInfo(repository.repositoryName);
-    renderInfo(repoInfo);
-  },
-  logs: async (cli: Result<any>) => {
-    const { data, error } = await tryCatch(getLogs(cli.input[0]));
-    if (error) return logError(error);
-    if (data) renderLogs(data, cli.input[0]);
-  },
-  update: async (cli: Result<any>) => {
-    const repository = getRepository(cli.input[0]);
-    if (!repository)
-      return logError(
-        new Error(`Repository named ${cli.input[0]} does not exist.`),
-      );
-    const hook = createHook(repository.repositoryName, repository.apps);
-    updateHook(repository.repositoryName, hook);
-  },
+		const repoInfo = await getRepositoryInfo(repository.repositoryName);
+		renderInfo(repoInfo);
+	},
+	logs: async (cli: Result<any>) => {
+		const { data, error } = await tryCatch(getLogs(cli.input[0]));
+		if (error) return logError(error);
+		if (data) renderLogs(data, cli.input[0]);
+	},
+	update: async (cli: Result<any>) => {
+		const repository = getRepository(cli.input[0]);
+		if (!repository) return logError(new Error(`Repository named ${cli.input[0]} does not exist.`));
+		const hook = createHook(repository.repositoryName, repository.apps);
+		updateHook(repository.repositoryName, hook);
+	}
 };
 
 async function handleCli(cli: Result<any>) {
-  await initCirrus(defaultOptions);
+	await initCirrus(defaultOptions);
 
-  // @ts-ignore
-  const [command, commandOptions] = Object.entries(cli.commands ?? {})?.[0];
-  const subcommand = subcommands[command];
-  // @ts-ignore
-  if (subcommand) await subcommand(commandOptions);
+	// @ts-ignore
+	const [command, commandOptions] = Object.entries(cli.commands ?? {})?.[0];
+	const subcommand = subcommands[command];
+	// @ts-ignore
+	if (subcommand) await subcommand(commandOptions);
 
-  pm2.disconnect();
+	pm2.disconnect();
 }
 
 handleCli(cli);

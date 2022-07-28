@@ -9,61 +9,51 @@ import type { Proc, StartOptions } from 'pm2';
 import publicIp from 'public-ip';
 import type { AppOptions, AppOptionsType } from './types';
 import { getGlobalOptions, getProcessApp, getRepository } from './process';
-import {
-  getConfig,
-  getLogPath,
-  getRepoPath,
-  getWorkPath,
-  saveConfig,
-  tryCatch,
-} from './util';
+import { getConfig, getLogPath, getRepoPath, getWorkPath, saveConfig, tryCatch } from './util';
 import { log, LogLevels } from './logger';
 import { createHook } from './hooks';
 import { execa } from 'execa';
 
-function startAppPm2(
-  repositoryName: string,
-  app: AppOptionsType,
-): Promise<Proc> {
-  return new Promise((resolve, reject) => {
-    const processOptions: StartOptions = {
-      name: app.appName,
-      script: 'npm',
-      args: 'start',
-      min_uptime: getGlobalOptions().minUptime,
-      max_restarts: getGlobalOptions().maxRestarts,
-      output: app.logFile,
-      error: app.errorFile,
-      cwd: join(getWorkPath(repositoryName), app.path ?? './'),
-      env: {
-        ...getGlobalOptions().env,
-        ...app.env,
-      },
-    };
+function startAppPm2(repositoryName: string, app: AppOptionsType): Promise<Proc> {
+	return new Promise((resolve, reject) => {
+		const processOptions: StartOptions = {
+			name: app.appName,
+			script: 'npm',
+			args: 'start',
+			min_uptime: getGlobalOptions().minUptime,
+			max_restarts: getGlobalOptions().maxRestarts,
+			output: app.logFile,
+			error: app.errorFile,
+			cwd: join(getWorkPath(repositoryName), app.path ?? './'),
+			env: {
+				...getGlobalOptions().env,
+				...app.env
+			}
+		};
 
-    pm2.start(processOptions, (err: Error, proc: Proc) => {
-      if (err) reject(err);
-      resolve(proc);
-    });
-  });
+		pm2.start(processOptions, (err: Error, proc: Proc) => {
+			if (err) reject(err);
+			resolve(proc);
+		});
+	});
 }
 
 function stopAppPm2(app: string) {
-  return new Promise((resolve, reject) => {
-    pm2.stop(app, async (err: Error, proc: Proc) => {
-      if (err) reject(err);
-      resolve(proc);
-    });
-  });
+	return new Promise((resolve, reject) => {
+		pm2.stop(app, async (err: Error, proc: Proc) => {
+			if (err) reject(err);
+			resolve(proc);
+		});
+	});
 }
 
 function removeAppPm2(app: AppOptionsType) {
-  return new Promise((resolve, reject) => {
-    pm2.delete(app.appName, async (err: Error, proc: Proc) => {
-      if (err) reject(err);
-      resolve(proc);
-    });
-  });
+	return new Promise((resolve, reject) => {
+		pm2.delete(app.appName, async (err: Error, proc: Proc) => {
+			if (err) reject(err);
+			resolve(proc);
+		});
+	});
 }
 
 // export async func
@@ -71,60 +61,53 @@ function removeAppPm2(app: AppOptionsType) {
 // TODO: Refactor -> startApp -> startRepository
 // startApp should be for individual apps…
 export async function startApp(repositoryName: string) {
-  const repository = getRepository(repositoryName);
-  if (!repository)
-    throw Error(`Repository with name ${repository} does not exist.`);
-  const startAppPromises = repository.apps.map((app) =>
-    startAppPm2(repositoryName, app),
-  );
-  return await Promise.all(startAppPromises);
+	const repository = getRepository(repositoryName);
+	if (!repository) throw Error(`Repository with name ${repository} does not exist.`);
+	const startAppPromises = repository.apps.map((app) => startAppPm2(repositoryName, app));
+	return await Promise.all(startAppPromises);
 }
 
 export async function removeApp(repositoryName: string) {
-  const repository = getRepository(repositoryName);
-  if (!repository)
-    throw Error(`Repository with name ${repositoryName} does not exist.`);
+	const repository = getRepository(repositoryName);
+	if (!repository) throw Error(`Repository with name ${repositoryName} does not exist.`);
 
-  // Remove app from globalOptions
-  const config = getConfig();
-  config.repos = config.repos.filter(
-    (repo) => repo.repositoryName !== repositoryName,
-  );
-  saveConfig(config);
+	// Remove app from globalOptions
+	const config = getConfig();
+	config.repos = config.repos.filter((repo) => repo.repositoryName !== repositoryName);
+	saveConfig(config);
 
-  // Remove folders
-  rmSync(getWorkPath(repositoryName), { recursive: true, force: true });
-  rmSync(getRepoPath(repositoryName), { recursive: true, force: true });
-  rmSync(getLogPath(repositoryName), { recursive: true, force: true });
+	// Remove folders
+	rmSync(getWorkPath(repositoryName), { recursive: true, force: true });
+	rmSync(getRepoPath(repositoryName), { recursive: true, force: true });
+	rmSync(getLogPath(repositoryName), { recursive: true, force: true });
 
-  // Delete processes
-  const removeAppPromises = repository.apps.map((app) => removeAppPm2(app));
-  const removeAppResults = await Promise.all(removeAppPromises);
+	// Delete processes
+	const removeAppPromises = repository.apps.map((app) => removeAppPm2(app));
+	const removeAppResults = await Promise.all(removeAppPromises);
 
-  return removeAppResults;
+	return removeAppResults;
 }
 
 export async function stopApp(appName: string) {
-  return new Promise(async (resolve, reject) => {
-    /* if (!getApp(appName))
+	return new Promise(async (resolve, reject) => {
+		/* if (!getApp(appName))
       return log(`App with name ${appName} does not exist.`, LogLevels.WARNING); */
 
-    const app = await getProcessApp(appName);
-    if (!app) resolve(null);
+		const app = await getProcessApp(appName);
+		if (!app) resolve(null);
 
-    pm2.stop(appName, (err: Error, proc: Proc) => {
-      if (err) reject(err);
-      resolve(proc);
-    });
-  });
+		pm2.stop(appName, (err: Error, proc: Proc) => {
+			if (err) reject(err);
+			resolve(proc);
+		});
+	});
 }
 
 export async function stopRepository(repositoryName: string) {
-  const repository = getRepository(repositoryName);
-  if (!repository)
-    throw Error(`Repository with name ${repository} does not exist.`);
-  const stopAppPromises = repository.apps.map((app) => stopAppPm2(app.appName));
-  return await Promise.all(stopAppPromises);
+	const repository = getRepository(repositoryName);
+	if (!repository) throw Error(`Repository with name ${repository} does not exist.`);
+	const stopAppPromises = repository.apps.map((app) => stopAppPm2(app.appName));
+	return await Promise.all(stopAppPromises);
 }
 
 // Exports

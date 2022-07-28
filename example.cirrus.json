@@ -1,12 +1,12 @@
 {
-  "name": "example",
-  "plugins": ["cirrus"],
-  "deployments": [
-    {
-      "name": "example-deployment",
-      "path": ".",
-      "port": 3000,
-      "domain": "example.com"
-    }
-  ]
+	"name": "example",
+	"plugins": ["cirrus"],
+	"deployments": [
+		{
+			"name": "example-deployment",
+			"path": ".",
+			"port": 3000,
+			"domain": "example.com"
+		}
+	]
 }
