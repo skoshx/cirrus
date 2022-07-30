@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { cpu, memory, statusToColor, time } from '../formatting';
-import type { AppInfo, Pm2AppInfo } from '../process';
-import { getDeployments, Deployment } from '../init';
+import { Deployment, Pm2AppInfo } from '../types';
+import { getDeployments } from '../project';
 
 export const Table = () => {
-	const [infos, setInfos] = useState<(Deployment & Pm2AppInfo)[]>([]);
+	const [infos, setInfos] = useState<(Deployment & Pm2AppInfo)[]>();
 
 	const { isRawModeSupported } = useStdin();
 
@@ -17,7 +17,7 @@ export const Table = () => {
 			if (input === 'q') process.exit(0);
 		});
 
-	const widthFromColumns = (info: AppInfo) => `${1 / Object.keys(infos[0] ?? {}).length}%`;
+	// const widthFromColumns = (info: AppInfo) => `${1 / Object.keys(infos[0] ?? {}).length}%`;
 
 	const fixedWidth = '16%';
 
@@ -74,36 +74,44 @@ export const Table = () => {
 				</Box>
 			</Box>
 
-			{infos.length === 0 ? (
+			{infos && infos.length === 0 ? (
+				<Box width={'100%'} paddingTop={1}>
+					<Text color={'cyanBright'}>No projects found</Text>
+					<Text color={'gray'}> (create a project `cirrus init project-name`)</Text>
+				</Box>
+			) : null}
+
+			{infos === undefined && (
 				<Box width={'100%'} paddingTop={1}>
 					<Text color={'cyanBright'}>
 						<Spinner />
 					</Text>
 				</Box>
-			) : null}
+			)}
 
-			{infos.map((app) => (
-				<Box key={app.name} justifyContent={'space-between'} paddingTop={1}>
-					<Box width={fixedWidth}>
-						<Text>{app.name}</Text>
+			{infos &&
+				infos.map((app) => (
+					<Box key={app.name} justifyContent={'space-between'} paddingTop={1}>
+						<Box width={fixedWidth}>
+							<Text>{app.name}</Text>
+						</Box>
+						<Box width={fixedWidth}>
+							<Text>{app.port}</Text>
+						</Box>
+						<Box width={fixedWidth}>
+							<Text>{cpu(app.cpu ?? 0)}</Text>
+						</Box>
+						<Box width={fixedWidth}>
+							<Text>{memory(app.memory ?? 0)}</Text>
+						</Box>
+						<Box width={fixedWidth}>
+							<Text>{time(app.uptime)}</Text>
+						</Box>
+						<Box width={fixedWidth}>
+							<Text color={statusToColor(app.status ?? 'stopped')}>{app.status ?? 'stopped'}</Text>
+						</Box>
 					</Box>
-					<Box width={fixedWidth}>
-						<Text>{app.port}</Text>
-					</Box>
-					<Box width={fixedWidth}>
-						<Text>{cpu(app.cpu ?? 0)}</Text>
-					</Box>
-					<Box width={fixedWidth}>
-						<Text>{memory(app.memory ?? 0)}</Text>
-					</Box>
-					<Box width={fixedWidth}>
-						<Text>{time(app.uptime)}</Text>
-					</Box>
-					<Box width={fixedWidth}>
-						<Text color={statusToColor(app.status ?? 'stopped')}>{app.status ?? 'stopped'}</Text>
-					</Box>
-				</Box>
-			))}
+				))}
 		</Box>
 	);
 };

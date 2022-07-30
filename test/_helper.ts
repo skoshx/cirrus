@@ -1,19 +1,50 @@
 import { ExecutionContext, TestFn } from 'ava';
-import { AppOptionsType, PushOptionsType } from '../dist/index';
 import { join } from 'path';
-import { rmSync, existsSync } from 'fs';
-import { initCirrus } from '../dist/index';
+import { existsSync, rmSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import ms from 'ms';
+import { createDirectory } from '../src/util';
+import { Deployment, Project } from '../src/types';
+import { initProject } from '../src/init';
 
 export interface TestSuiteType {
-	global: PushOptionsType;
-	app: AppOptionsType[];
-	monorepo: AppOptionsType[];
+	testapp: Project;
 }
 
 export const __testDirname = dirname(fileURLToPath(import.meta.url));
+
+export const mockProject: Project = {
+	name: 'mockproject',
+	plugins: ['caddy'],
+	deployments: [
+		{
+			name: 'mock-deployment',
+			path: '.',
+			port: 3000,
+			start: 'npm run start',
+			build: 'npm run build'
+		}
+	]
+};
+
+export function withProject(
+	project: Partial<Project>,
+	deployment?: Partial<Deployment>,
+	removeDeployments = false
+) {
+	return {
+		...mockProject,
+		...project,
+		deployments: removeDeployments
+			? []
+			: [
+					{
+						...mockProject.deployments[0],
+						...deployment
+					}
+			  ]
+	};
+}
 
 export function setupTestSuite(
 	test: TestFn<TestSuiteType>,
@@ -21,52 +52,21 @@ export function setupTestSuite(
 	after?: (t: ExecutionContext<TestSuiteType>) => void
 ) {
 	test.before(async (t) => {
-		t.context.global = {
-			root: join(__testDirname, 'cirrus'),
-			env: { NODE_ENV: 'test' },
-			minUptime: ms('1h'),
-			maxRestarts: 10,
-			repos: []
-		};
+		createDirectory(join(__testDirname, 'cirrus'));
+		createDirectory(join(__testDirname, 'caddy'));
+		process.env.CIRRUS_ROOT = join(__testDirname, 'cirrus');
+		process.env.CADDYFILE_PATH = join(__testDirname, 'caddy', 'Caddyfile');
 
-		// delete cirrus folder if exists
-		if (existsSync(t.context.global.root)) rmSync(t.context.global.root, { recursive: true });
-
-		await initCirrus(t.context.global);
-
-		t.context.app = [
-			{
-				appName: 'app',
-				port: 3000,
-				commands: ['npm install', 'npm run build'],
-				env: {}
-			}
-		];
-
-		t.context.monorepo = [
-			{
-				appName: 'monorepo-app',
-				port: 3000,
-				path: 'apps/web',
-				commands: ['npm install', 'npm run build']
-			},
-			{
-				appName: 'monorepo-api',
-				port: 3001,
-				path: 'apps/api',
-				commands: ['npm install', 'npm run build'],
-				env: {
-					NODE_ENV: 'production',
-					SECRET_KEY: 'abcd'
-				}
-			}
-		];
-
+		t.context.testapp = initProject('test-project');
 		if (before) await before(t);
 	});
 
-	test.after(async (t) => {
-		rmSync(join(__testDirname, 'cirrus'), { recursive: true, force: true });
+	test.after.always(async (t) => {
+		// Clean up Cirrus
+		if (existsSync(join(__testDirname, 'cirrus')))
+			rmSync(join(__testDirname, 'cirrus'), { recursive: true });
+		if (existsSync(join(__testDirname, 'caddy', 'Caddyfile')))
+			rmSync(join(__testDirname, 'caddy'), { recursive: true });
 		if (after) await after(t);
 	});
 }

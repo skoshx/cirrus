@@ -1,6 +1,6 @@
 {
 	"name": "example",
-	"plugins": ["cirrus"],
+	"plugins": ["caddy"],
 	"deployments": [
 		{
 			"name": "example-deployment",

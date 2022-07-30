@@ -1,27 +1,9 @@
 // Utils
 import { deepStrictEqual } from 'assert';
-import { AppOptionsType, PushOptions, PushOptionsType } from './types';
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { AppInfo, getGlobalOptions, listApps } from './process';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { defaultOptions } from './defaults';
-
-export function isPortTaken(port: number) {
-	const takenPorts: number[] = [];
-	const options = getGlobalOptions();
-	for (let i = 0; i < options.repos.length; i++) {
-		takenPorts.push(...options.repos[i].apps.map((app) => app.port));
-	}
-	return takenPorts.includes(port);
-}
-
-export function getAvailablePort(port?: number): number {
-	if (port && isPortTaken(port))
-		throw Error(`Cannot use port ${port}, as it is used by another app.`);
-	port = 3000;
-	while (isPortTaken(port)) port++;
-	return port;
-}
+import { getRootCirrusPath } from './defaults';
+import { Deployment } from './types';
 
 export interface TryCatchResponse<T = unknown> {
 	data: T | null;
@@ -69,19 +51,20 @@ export async function deepEqual(a: any, b: any) {
 	return error === null;
 }
 
-export function saveConfig(config: PushOptionsType) {
-	config = PushOptions.parse(config);
-	mkdirSync(config.root, { recursive: true });
-	writeFileSync(join(config.root, '.cirrusrc'), JSON.stringify(config, null, 2));
+export const getLogFilePath = (deployment: Deployment) =>
+	join(getRootCirrusPath(), 'logs', deployment.name, deployment.logFilePath ?? `stdout.log`);
+export const getErrorLogFilePath = (deployment: Deployment) =>
+	join(getRootCirrusPath(), 'logs', deployment.name, deployment.errorLogFilePath ?? `stderr.log`);
+
+export const getWorkingDir = (projectName: string) => join(getRootCirrusPath(), projectName);
+
+export function createDirectory(path: string) {
+	if (!existsSync(path)) mkdirSync(path, { recursive: true });
 }
 
-export function getConfig(configPath: string = defaultOptions.root): PushOptionsType {
-	const { data } = tryCatchSync(() => readFileSync(join(configPath, '.cirrusrc'), 'utf-8'));
-	if (!data) throw Error('.cirrusrc file does not exist. Did you forget to call `initCirrus()`?');
-	return JSON.parse(data);
+export function readFileOrCreate(path: string) {
+	const { data } = tryCatchSync(() => readFileSync(path, 'utf-8'));
+	if (data) return data.toString();
+	writeFileSync(path, '', 'utf-8');
+	return '';
 }
-
-export const getWorkPath = (appName: string) => join(getGlobalOptions().root, 'apps', appName);
-export const getRepoPath = (appName: string) =>
-	join(getGlobalOptions().root, 'repos', appName + '.git');
-export const getLogPath = (appName: string) => join(getGlobalOptions().root, 'logs', appName);

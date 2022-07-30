@@ -1,5 +1,5 @@
 import ms from 'ms';
-import { ProcessStatus } from './process';
+import { ProcessStatus } from './types';
 
 export const time = (time: number) => ms(time, { long: true });
 

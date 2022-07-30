@@ -109,24 +109,36 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## TODO
 
-2 approaches
+- Caddy plugin [X]
 
-GitHub pull with Webhooks
+- Env variables [X]
 
-Setup:
--> cirrus init skoshx/reponame -> Get access with github personal access token… (kind of struggle)
--> this does git clone
--> setup github webhook (kind of struggle)
--> push to github, and everything gets magically deployed…
--> what if access token expires?
+  - cirrus.env & .env file for each project (eg. `mywebsite.env`)
+  - Inject cirrus.env & project specific env variables…
 
-Git repository on server --> I think we're going with this…
--> cirrus init projectname
--> creates bare git repo
--> on user's local machine `git remote add deploy ssh://someip.com/srv/repo.git` (kind of struggle)
--> to deploy, `git push deploy`
+- Remove port option (user shouldn't need to think about ports…)
 
-- A function for checking validity of a project file (non-conflicting project names, non conflicting ports)
+- Custom Caddyfile path… [X]
+
+- Tests
+
+  - get logs, get project, get deployments tests
+
+- Good error reporting
+
+  - All errors should have some explanation or possible solution
+  - Also have the error
+
+- Ignore paths (low priority)
+
+Some brainstorming: - What if we get rid of cirrus.json having to be in all projects
+-> how it would work: we have cirrus.json files for all projects on server
+-> if one exists in repository, that has "privilege" over default cirrus.json
+-> Caddy probably will still exist by default in all deployments, because it's so
+often we need domain. - We want Cirrus to be as Magical as Railway. We want things to JUST WORK. - We want to be able to git pull any repository, then run - `cirrus init (name)` on server - `cirrus info (name)` to get remote - `git remote add deploy (remote)` - `git push deploy main` - For this, we need some kind of module to detect what's being deployed…
+
+    - We need to be able to deploy programmatically somehow for tests
+    	- Simply add a optional `Project` to deploy?? could it be so simple?
 
 - Cirrus project file inside GitHub repo (project name cannot have spaces)
 - How do we inject/store environment variables?

@@ -1,48 +1,59 @@
 import { z } from 'zod';
 
-export const AppOptions = z.object({
-	appName: z.string(),
+export const DeploymentSchema = z.object({
+	path: z.string().default('.'),
+	name: z.string(), // TODO check no spaces
 	port: z.number(),
-	/**
-  The domain for the app, eg. skoshx.com.
-  */
-	domain: z.string().optional(),
-	path: z.string().default('./').optional(),
-	errorFile: z.string().optional(),
-	logFile: z.string().optional(),
-	commands: z.array(z.string()).optional(),
-	env: z.object({}).catchall(z.string()).optional(),
-	instances: z.number().optional()
-});
-
-export const RepositoryOptions = z.object({
-	/**
-	 * The name of the repository containing all the apps.
-	 * This is also the name of the local git repository.
-	 */
-	repositoryName: z.string(),
-	apps: z.array(AppOptions),
-	remote: z
+	build: z.string().default('npm run build'),
+	start: z.string().default('npm run start'),
+	domain: z
 		.string()
-		.regex(/https:\/\/github.com\/(\w)*\/(\w)*/)
-		.optional()
+		.transform((domain: string) => {
+			const transformedDomain = new URL(
+				domain.startsWith('http://') || domain.startsWith('https://') ? domain : `http://${domain}`
+			).hostname;
+			const domainRegex =
+				/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/;
+			if (!domainRegex.test(transformedDomain)) throw Error(`Invalid domain ${domain}`);
+			return transformedDomain;
+		})
+		.optional(),
+	logFilePath: z.string().optional(),
+	errorLogFilePath: z.string().optional()
 });
 
-export const PushOptions = z.object({
-	/**
-	 * The root where all Cirrus related files will be stored.
-	 */
-	root: z.string(),
-	/**
-	 * Default environment variables that will be included for all
-	 * apps. These can be overwritten by providing `env` in `AppOptions`
-	 */
-	env: z.object({}).catchall(z.string()),
-	minUptime: z.number(),
-	maxRestarts: z.number(),
-	repos: z.array(RepositoryOptions)
+export const ProjectSchema = z.object({
+	name: z.string(), // TODO check no spaces
+	deployments: z.array(DeploymentSchema),
+	plugins: z.array(z.string()).optional()
 });
 
-export type AppOptionsType = z.infer<typeof AppOptions>;
-export type RepositoryType = z.infer<typeof RepositoryOptions>;
-export type PushOptionsType = z.infer<typeof PushOptions>;
+export type Deployment = z.infer<typeof DeploymentSchema>;
+export type Project = z.infer<typeof ProjectSchema>;
+
+export interface ProjectInfo {
+	remote: string;
+	ports: number[];
+}
+
+export interface NewAppLog {
+	deploymentName: string;
+	errors: string[]; // error logs
+	logs: string[]; // normal logs
+}
+
+// From PM2 types
+export type ProcessStatus =
+	| 'online'
+	| 'stopping'
+	| 'stopped'
+	| 'launching'
+	| 'errored'
+	| 'one-launch-status';
+
+export interface Pm2AppInfo {
+	cpu: number;
+	memory: number;
+	uptime: number;
+	status: ProcessStatus;
+}

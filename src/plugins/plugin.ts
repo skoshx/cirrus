@@ -1,12 +1,12 @@
 // Cirrus core plugins - extend core Cirrus functionality with a simple API
 
-import { Project } from '../init';
+import { Project } from '../types';
+import { caddy } from './caddy';
 
 export type CirrusPluginType = (opts: CirrusPluginOptions) => Promise<void> | void;
 
-export async function nginx() {}
-export async function caddy(opts: CirrusPluginOptions) {}
-export async function postgres() {}
+export async function nginx() {} // TODO
+export async function postgres() {} // TODO
 
 export type CirrusEvent = 'init' | 'deploy' | 'delete';
 
@@ -16,7 +16,7 @@ export interface CirrusPluginOptions {
 }
 
 // { plugins: ['caddy', 'postgres'] }
-export async function corePlugins(opts: CirrusPluginOptions) {
+export async function runPlugins(opts: CirrusPluginOptions) {
 	const plugins = opts.project.plugins;
 	if (!plugins) return;
 	for (const plugin of plugins) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useInput, useStdin } from 'ink';
-import { getLogs, NewAppLog } from '../init';
+import { NewAppLog } from '../types';
+import { getLogs } from '../project';
 
 export const Logs = ({
 	logs: appLogs,

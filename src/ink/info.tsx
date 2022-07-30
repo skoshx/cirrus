@@ -1,10 +1,6 @@
-// const React = require('react');
-// const Chance = require('chance');
 import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
-import { Spinner } from './spinner';
-import { cpu, memory, statusToColor, time } from '../formatting';
-import type { ProjectInfo } from '../init';
+import { ProjectInfo } from '../types';
 
 export const Table = ({ info }: { info: ProjectInfo }) => {
 	const { isRawModeSupported } = useStdin();
@@ -21,7 +17,7 @@ export const Table = ({ info }: { info: ProjectInfo }) => {
 				&#127783;{'  '}Cirrus <Text color={'gray'}>(press 'q' to quit)</Text>
 			</Text>
 
-			<Box paddingBottom={1} flexDirection="column">
+			<Box paddingBottom={1} paddingTop={1} flexDirection="column">
 				<Text color={'cyanBright'} bold>
 					Remote
 				</Text>

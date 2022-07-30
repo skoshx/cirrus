@@ -1,9 +1,11 @@
 import meow from 'meow';
 import type { AnyFlags, Result } from 'meow';
-import { deploy, getDeployments, getLogs, getProjectInfo, initProject } from './init';
 import { renderInfo } from './ink/info';
 import { renderList } from './ink/list';
 import { renderLogs } from './ink/logs';
+import { initProject } from './init';
+import { deploy } from './deploy';
+import { getDeployments, getLogs, getProjectInfo } from './project';
 
 const init = {
 	description: 'Create a new app',
@@ -21,9 +23,8 @@ const init = {
 	},
 	handler: async (cli: Result<AnyFlags>) => {
 		const projectName = cli.input[1];
-		const result = await initProject(projectName);
-		console.log('init project resutl : ');
-		console.log(result);
+		const project = await initProject(projectName);
+		renderList([]);
 	}
 };
 
@@ -44,9 +45,7 @@ const deployCli = {
 	handler: async (cli: Result<AnyFlags>) => {
 		const projectName = cli.input[1];
 		const result = await deploy(projectName);
-		console.log('Result ');
-		console.log(result);
-		// renderList(await listApps());
+		renderList([]);
 	}
 };
 
