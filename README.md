@@ -31,6 +31,7 @@ $ npm install -g cirrus2
 
 ## Features
 
+- Automatically sets up domains with SSL
 - Monorepo support out of the box
 - Plugins
 
@@ -55,12 +56,6 @@ First, log in to your Virtual Private Server. [DigitalOcean offers VPS' for only
 $ ssh root@<ip>
 ```
 
-Install Node.js
-
-```bash
-$
-```
-
 Install Cirrus
 
 ```bash
@@ -76,13 +71,17 @@ $ cirrus setup
 Create an app.
 
 ```bash
-$ cirrus create my-app --port 3000 <options>
+$ cirrus init my-app
 ```
 
 Then, on your local machine:
 
 ```bash
 $ git remote add deploy https://<your vps ip>/
+```
+
+```bash
+$ git push deploy main # deploy!
 ```
 
 ## Docs
@@ -109,17 +108,6 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## TODO
 
-- Caddy plugin [X]
-
-- Env variables [X]
-
-  - cirrus.env & .env file for each project (eg. `mywebsite.env`)
-  - Inject cirrus.env & project specific env variables…
-
-- Remove port option (user shouldn't need to think about ports…)
-
-- Custom Caddyfile path… [X]
-
 - Tests
 
   - get logs, get project, get deployments tests
@@ -129,27 +117,17 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
   - All errors should have some explanation or possible solution
   - Also have the error
 
-- Ignore paths (low priority)
+- Remove port option (user shouldn't need to think about ports…)
 
-Some brainstorming: - What if we get rid of cirrus.json having to be in all projects
--> how it would work: we have cirrus.json files for all projects on server
--> if one exists in repository, that has "privilege" over default cirrus.json
--> Caddy probably will still exist by default in all deployments, because it's so
-often we need domain. - We want Cirrus to be as Magical as Railway. We want things to JUST WORK. - We want to be able to git pull any repository, then run - `cirrus init (name)` on server - `cirrus info (name)` to get remote - `git remote add deploy (remote)` - `git push deploy main` - For this, we need some kind of module to detect what's being deployed…
+- Somehow we need to separate the project config from the GitHub...
 
-    - We need to be able to deploy programmatically somehow for tests
-    	- Simply add a optional `Project` to deploy?? could it be so simple?
+  - It was a nice idea, but isn't in line with cirrus long term goals of no config
+  - Maybe a `cirrus/config/appname.json` file that gets overridden if repo contains `cirrus.json` file
+  - This loops back to the removing port thing… if we want to remove port option, we still need
+    to keep track of it so that it doesn't keep changing…
 
-- Cirrus project file inside GitHub repo (project name cannot have spaces)
-- How do we inject/store environment variables?
-  -> we can just have one file with all needed .env variables
-  -> one .env file for stuff added by cirrus as well as plugins
-  -> .env file for each project like `mywebsite.env` , loaded accordingly
-- Project file can have multiple deployments (monorepo support)
-- Deployments can have ignore paths? (low priority)
-- Deployments do following 1) git pull 2) run any commands specified in deployment, catching errors and reporting them in user-friendly way. 3) open any ports / firwall (this should be done with a plugin?) 4) Setup domain with Caddyserver if needed…
 - Plugins
-  - Plugins work in such a way: Plugins are ever-present, passed to all functions `create`, `delete`, `createHook`, and then the plugin is called after all transformations are made…
+
   - Plugins can insert ENV variables to all programs; for instance, if we have POSTGRES plugin, then maybe we have a `POSTGRES_CONNECTION_URL` env variable passed to all programs. What ENV variables are exposed needs to be documented by the plugin.
   - Automatic Caddy server configuration plugin
     - Add path to CERT files to ENV
@@ -157,7 +135,15 @@ often we need domain. - We want Cirrus to be as Magical as Railway. We want thin
   - Automatic Postgres configuration plugin
     - Add connection url to ENV
   - Firewall setup plugin
-- Improved docs
-- Tests
+
+- Add possibility to init from github
+  [Instructions](https://github.com/railwayapp/starters/tree/master/examples/umami)
+
+```bash
+$ cirrus init umami-software/umami
+$ cirrus init railwayapp/blog
+```
+
+- Ignore paths (low priority)
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.digitaloceanspaces.com/WWW/Badge%202.svg)](https://www.digitalocean.com/?refcode=c8178a5d5ec6&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)

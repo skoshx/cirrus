@@ -40,15 +40,11 @@ function startAppPm2New(projectName: string, deployment: Deployment): Promise<Pr
 
 // then `cirrus deploy <project name>` gets called
 export async function deploy(projectName: string, config?: Project) {
-	// go to repo
-	// process.chdir(join(getRootCirrusPath(), projectName));
 	// read project config file
 	config = config ?? getProjectConfig(projectName);
 	// run thru deployments
 	const processes: Proc[] = [];
 	for (let i = 0; i < config.deployments.length; i++) {
-		// change dir
-		// process.chdir(join(getRootCirrusPath(), projectName, config.deployments[i].path));
 		// run install
 		// TODO support for pnpm, yarn
 		execaCommandSync('pnpm install', {
