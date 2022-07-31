@@ -57,7 +57,7 @@ export function setupTestSuite(
 		process.env.CIRRUS_ROOT = join(__testDirname, 'cirrus');
 		process.env.CADDYFILE_PATH = join(__testDirname, 'caddy', 'Caddyfile');
 
-		t.context.testapp = initProject('test-project');
+		t.context.testapp = await initProject('test-project');
 		if (before) await before(t);
 	});
 

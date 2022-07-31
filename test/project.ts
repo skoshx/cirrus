@@ -8,12 +8,14 @@ const test = anyTest as TestFn<TestSuiteType>;
 
 setupTestSuite(test);
 
-test('project > config > no clashing project names', (t) => {
-	t.throws(() => initProject(t.context.testapp.name));
+test.todo('project > config > combines configs correctly');
+
+test('project > config > no clashing project names', async (t) => {
+	await t.throwsAsync(initProject(t.context.testapp.name));
 });
 test.todo('project > config > no clashing deployment names');
-test('project > config > no spaces in project name', (t) => {
-	t.throws(() => initProject('test app'));
+test('project > config > no spaces in project name', async (t) => {
+	await t.throwsAsync(initProject('test app'));
 });
 test.todo('project > config > no clashing ports');
 

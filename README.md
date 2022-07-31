@@ -50,7 +50,7 @@ TODO: Write the rest
 
 ## Usage
 
-First, log in to your Virtual Private Server. [DigitalOcean offers VPS' for only 5$/mo.](https://m.do.co/c/c8178a5d5ec6)
+First, log in to your Virtual Private Server. [DigitalOcean offers VPS' for only 4$/mo.](https://m.do.co/c/c8178a5d5ec6)
 
 ```bash
 $ ssh root@<ip>
@@ -111,20 +111,25 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
 - Tests
 
   - get logs, get project, get deployments tests
+  - test deploying with mock app
+
+- Logging
+
+  - logging flag… [X]
 
 - Good error reporting
 
   - All errors should have some explanation or possible solution
   - Also have the error
 
-- Remove port option (user shouldn't need to think about ports…)
+- Abstract away `cirrus.json`
 
-- Somehow we need to separate the project config from the GitHub...
+  - Upon init a `cirrus.json` gets created in `cirruspath/config/projectname.json`
+  - You can have a `cirrus.json` file in your GitHub repository, in which case that is prioritized (merged)
+    with the project cirrus config on disk (for things like ports)
+  - Remove port option (user shouldn't need to think about ports…)
 
-  - It was a nice idea, but isn't in line with cirrus long term goals of no config
-  - Maybe a `cirrus/config/appname.json` file that gets overridden if repo contains `cirrus.json` file
-  - This loops back to the removing port thing… if we want to remove port option, we still need
-    to keep track of it so that it doesn't keep changing…
+- Deploy in a way that doesn't take app offline
 
 - Plugins
 

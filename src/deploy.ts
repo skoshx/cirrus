@@ -1,12 +1,19 @@
-import { execaCommandSync } from 'execa';
 import { join } from 'path';
 import pm2, { Proc, StartOptions } from 'pm2';
 import { getRootCirrusPath } from './defaults';
 import { getCirrusEnvironment, getProjectEnvironment } from './env';
+import { getCirrusLogger } from './logger';
 import { runPlugins } from './plugins/plugin';
 import { getProjectConfig } from './project';
 import { Deployment, Project } from './types';
-import { getErrorLogFilePath, getLogFilePath, getWorkingDir } from './util';
+import {
+	executeCommandOrCatch,
+	getErrorLogFilePath,
+	getLogFilePath,
+	getWorkingDir,
+	tryCatch,
+	tryCatchSync
+} from './util';
 
 function getScriptAndArgs(startScript: string) {
 	const [script, ...args] = startScript.split(' ');
@@ -42,21 +49,33 @@ function startAppPm2New(projectName: string, deployment: Deployment): Promise<Pr
 export async function deploy(projectName: string, config?: Project) {
 	// read project config file
 	config = config ?? getProjectConfig(projectName);
+	getCirrusLogger().info(
+		`deploying ${config.deployments.length} deployments from project ${projectName}`,
+		{ config }
+	);
 	// run thru deployments
 	const processes: Proc[] = [];
 	for (let i = 0; i < config.deployments.length; i++) {
+		getCirrusLogger().info(`deploying ${config.deployments[i].name}`);
 		// run install
 		// TODO support for pnpm, yarn
-		execaCommandSync('pnpm install', {
+		executeCommandOrCatch('npm install', {
 			cwd: join(getWorkingDir(projectName), config.deployments[i].path)
 		});
 		// run build command
-		execaCommandSync(config.deployments[i].build, {
+		executeCommandOrCatch(config.deployments[i].build, {
 			cwd: join(getWorkingDir(projectName), config.deployments[i].path)
 		});
 		// run start command with PM2
-		const proc = await startAppPm2New(projectName, config.deployments[i]);
-		processes.push(proc);
+		const { data: proc, error } = await tryCatch(
+			startAppPm2New(projectName, config.deployments[i])
+		);
+		if (error)
+			getCirrusLogger().error(
+				`an error occurred while trying to start deployment ${config.deployments[i].name} with PM2.`,
+				{ error }
+			);
+		processes.push(proc as Proc);
 	}
 	// TODO check that all processes started healthy
 	console.log('TODO check that all processes started healthy');

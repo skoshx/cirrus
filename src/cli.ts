@@ -6,6 +6,7 @@ import { renderLogs } from './ink/logs';
 import { initProject } from './init';
 import { deploy } from './deploy';
 import { getDeployments, getLogs, getProjectInfo } from './project';
+import { executeCommandOrCatch } from './util';
 
 const init = {
 	description: 'Create a new app',
@@ -25,6 +26,28 @@ const init = {
 		const projectName = cli.input[1];
 		const project = await initProject(projectName);
 		renderList([]);
+	}
+};
+
+const install = {
+	description: 'Installs needed dependencies',
+	helpText: `
+	🌧  Install - installs all need dependencies (pm2, caddy, postgres)
+	$ cirrus install`,
+	handler: async (cli: Result<AnyFlags>) => {
+		executeCommandOrCatch('npm install -g pm2');
+		executeCommandOrCatch(
+			'sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https'
+		);
+		executeCommandOrCatch(
+			`curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg`
+		);
+		executeCommandOrCatch(
+			`curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list`
+		);
+		executeCommandOrCatch(`sudo apt update`);
+		executeCommandOrCatch(`sudo apt install caddy`);
+		console.log(`🌧  All ready to fly above the cirrus clouds!`);
 	}
 };
 
@@ -90,35 +113,39 @@ const cli = meow(
 	$ cirrus [command]
 	
 	Commands
-		create <app>            Create a new app
-		remove <app>            Delete an app
-		start <app>             Start an app monitored by pm2
-		stop <app>              Stop an app
-		restart <app>           Restart an app that's already running
+		init <app>              Create a new app
+		delete <app>            Delete an app
 		info <app>              Shows detailed information about an app
-		update <app>            Update app after modifying it from .cirrusrc
-		setup                   Sets up Cirrus (env, plugins, firewalls)
+		install                 Installs Cirrus' dependencies
 		list                    List apps and status
-		prune                   Clean up dead files
-		web [command]           Start/stop/restart the web interface
-		help                    You are reading it right now
+
+	Options
+		--loglevel              Log level 
+		                        ('emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug')
 	
 	Examples
-		$ cirrus create my-app
-		$ cirrus create --help`,
+		$ cirrus init my-app
+		$ cirrus init --help`,
 	{
 		description: 'Cirrus is a push to deploy tool written above the cirrus clouds.',
 		importMeta: import.meta,
+		flags: {
+			loglevel: { type: 'string', alias: 'l' }
+		},
 		// @ts-ignore
 		commands: {
 			init,
 			deploy: deployCli,
 			list,
 			logs,
-			info
+			info,
+			install
 		}
 	}
 );
+
+// Set logging
+if (cli.flags.loglevel) process.env.LOG_LEVEL = cli.flags.loglevel;
 
 // @ts-ignore
 cli.command.options.handler?.(cli);

@@ -4,8 +4,8 @@
 	"description": "Cirrus is a push to deploy tool written above the cirrus clouds. Inspired by Evan You's pod.",
 	"repository": "skoshx/cirrus",
 	"bin": {
-		"cirrus": "./dist/newcli.js",
-		"cirrus2": "./dist/newcli.js"
+		"cirrus": "./dist/cli.js",
+		"cirrus2": "./dist/cli.js"
 	},
 	"main": "./dist/index.cjs",
 	"type": "module",
@@ -28,7 +28,7 @@
 	],
 	"scripts": {
 		"test": "NODE_NO_WARNINGS=1 ava --serial",
-		"build": "rimraf dist && tsup src/newcli.ts --format esm --dts",
+		"build": "rimraf dist && tsup src/cli.ts --format esm --dts",
 		"build:lib": "rimraf dist && NODE_ENV=test tsup src/exports.ts --dts",
 		"prepublishOnly": "npm run build",
 		"prettier-check": "prettier --check .",
@@ -79,6 +79,7 @@
 		"dotenv": "^16.0.1",
 		"execa": "^6.1.0",
 		"ink": "^3.2.0",
+		"logpile": "^1.0.6",
 		"meow": "github:aaronccasanova/meow#381402f6744311cf6f0cd106424e5f432acde0c2",
 		"ms": "3.0.0-canary.1",
 		"pm2": "^5.2.0",

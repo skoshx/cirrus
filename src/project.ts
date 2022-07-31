@@ -4,6 +4,8 @@ import publicIp from 'public-ip';
 import { Deployment, NewAppLog, Pm2AppInfo, Project, ProjectSchema } from './types';
 import {
 	createDirectory,
+	getAvailablePort,
+	getConfigFromPath,
 	getErrorLogFilePath,
 	getLogFilePath,
 	getWorkingDir,
@@ -24,13 +26,15 @@ export async function getProjectInfo(projectName: string) {
 	return { remote, ports };
 }
 
+export const RESERVED_FOLDERS = ['logs', 'env', 'config'];
+
 export function getProjects(): Project[] {
 	const projects: Project[] = [];
 	createDirectory(getRootCirrusPath());
 	const appFolders = readdirSync(getRootCirrusPath(), { withFileTypes: true })
 		.filter((ent) => ent.isDirectory())
 		.map((ent) => ent.name)
-		.filter((folder) => !['logs', 'env'].includes(folder));
+		.filter((folder) => !RESERVED_FOLDERS.includes(folder));
 
 	for (const projectName of appFolders) {
 		const config = getProjectConfig(projectName);
@@ -75,9 +79,18 @@ async function getPm2AppInfoNew(deploymentName: string): Promise<Pm2AppInfo> {
 	});
 }
 
-const getDefaultProjectConfig = (projectName: string): Project => ({
+export const getDefaultProjectConfig = async (projectName: string): Promise<Project> => ({
 	name: projectName,
-	deployments: []
+	plugins: ['caddy'],
+	deployments: [
+		{
+			path: '.',
+			name: projectName,
+			port: await getAvailablePort(),
+			start: 'npm run start',
+			build: 'npm run build'
+		}
+	]
 });
 
 export const isValidProjectConfigSchema = (project: Project) => ProjectSchema.parse(project);
@@ -115,17 +128,20 @@ export async function isValidProjectConfig(project: Project) {
 }
 
 export function getProjectConfig(projectName: string): Project {
-	const { data, error } = tryCatchSync(() =>
-		readFileSync(join(getRootCirrusPath(), projectName, 'cirrus.json'))
+	const repoConfig = getConfigFromPath(join(getRootCirrusPath(), projectName, 'cirrus.json'));
+	const internalConfig = getConfigFromPath(
+		join(getRootCirrusPath(), 'config', `${projectName}.json`)
 	);
-	if (error) return getDefaultProjectConfig(projectName);
-	if (!data)
-		throw new Error(
-			`cirrus.json file at ${join(getRootCirrusPath(), projectName, 'cirrus.json')} doesn't exist.`
-		);
-	isValidProjectConfig(JSON.parse(data.toString()));
-	if (!data) throw Error(`cirrus.json is null`);
-	return ProjectSchema.parse(JSON.parse(data.toString()));
+	if (!internalConfig) throw Error(`No internal config found for project ${projectName}`);
+
+	// combine repos config with internal config
+	const combinedProject: Project = {
+		...internalConfig,
+		...repoConfig
+	};
+	// TODO: this causes some weird bugs
+	// isValidProjectConfig(JSON.parse(data.toString()));
+	return ProjectSchema.parse(combinedProject);
 }
 
 export async function getLogs(projectName: string) {

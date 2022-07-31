@@ -1,9 +1,8 @@
 // functions for generating Caddyfile from Cirrus configuration
-import { execaCommandSync } from 'execa';
-import { readFileSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { getProjects } from '../project';
 import { Deployment } from '../types';
-import { readFileOrCreate } from '../util';
+import { executeCommandOrCatch, readFileOrCreate } from '../util';
 import { CirrusEvent, CirrusPluginOptions, CirrusPluginType } from './plugin';
 
 export const getCaddyfilePath = () => process.env.CADDYFILE_PATH ?? '/etc/caddy/Caddyfile';
@@ -55,7 +54,7 @@ export const caddy: CirrusPluginType = async (opts: CirrusPluginOptions) => {
 			updateCaddyfile();
 			// reload caddy
 			if (process.env.NODE_ENV !== 'test')
-				execaCommandSync(`caddy reload --config ${getCaddyfilePath()}`);
+				executeCommandOrCatch(`caddy reload --config ${getCaddyfilePath()}`);
 		}
 	}
 };

@@ -1,9 +1,12 @@
 // Utils
 import { deepStrictEqual } from 'assert';
+import { execaCommandSync, SyncOptions } from 'execa';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { getRootCirrusPath } from './defaults';
-import { Deployment } from './types';
+import { getCirrusLogger } from './logger';
+import { getDeployments } from './project';
+import { Deployment, Project, ProjectSchema } from './types';
 
 export interface TryCatchResponse<T = unknown> {
 	data: T | null;
@@ -67,4 +70,38 @@ export function readFileOrCreate(path: string) {
 	if (data) return data.toString();
 	writeFileSync(path, '', 'utf-8');
 	return '';
+}
+
+export function executeCommandOrCatch(command: string, options?: SyncOptions<string>) {
+	getCirrusLogger().info(`executing command "${command}"`);
+	const { data, error } = tryCatchSync(() => execaCommandSync(command, options));
+	if (error) {
+		getCirrusLogger().error(
+			`An error occurred while executing command "${command}". If this problem persists, please open an issue on GitHub.`,
+			{ error }
+		);
+		return null;
+	}
+	return data;
+}
+
+export async function getAvailablePort() {
+	const takenPorts = (await getDeployments()).map((deployment) => deployment.port);
+	const isTaken = (port: number) => takenPorts.includes(port);
+	// TODO: fix this naïve approach of checking if port taken
+	let port = 3000;
+	while (isTaken(port)) port++;
+	return port;
+}
+
+export function getConfigFromPath(path: string) {
+	const { data } = tryCatchSync(() => readFileSync(path, 'utf-8').toString());
+	if (!data) return null;
+	return ProjectSchema.parse(JSON.parse(data));
+}
+
+export function writeConfig(projectName: string, config: Project) {
+	if (!existsSync(join(getRootCirrusPath(), 'config')))
+		mkdirSync(join(getRootCirrusPath(), 'config'), { recursive: true });
+	writeFileSync(join(getRootCirrusPath(), 'config', `${projectName}.json`), JSON.stringify(config));
 }

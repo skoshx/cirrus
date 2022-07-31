@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RESERVED_FOLDERS } from './project';
 
 export const DeploymentSchema = z.object({
 	path: z.string().default('.'),
@@ -23,7 +24,18 @@ export const DeploymentSchema = z.object({
 });
 
 export const ProjectSchema = z.object({
-	name: z.string(), // TODO check no spaces
+	name: z.string().transform((name) => {
+		const allowedRegex = /^[A-Za-z0-9_-]*$/;
+		if (RESERVED_FOLDERS.includes(name))
+			throw new Error(
+				`Invalid project name ${name}. Names ${RESERVED_FOLDERS.join(', ')} are reserved.`
+			);
+		if (!allowedRegex.test(name))
+			throw new Error(`Invalid project name ${name}. Only letters, numbers and -_ are allowed.`);
+		if (name.indexOf(' ') >= 0)
+			throw new Error(`Invalid project name ${name}. No spaces allowed in project name.`);
+		return name;
+	}),
 	deployments: z.array(DeploymentSchema),
 	plugins: z.array(z.string()).optional()
 });
