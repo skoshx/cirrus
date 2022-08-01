@@ -17,8 +17,6 @@ export const Table = () => {
 			if (input === 'q') process.exit(0);
 		});
 
-	// const widthFromColumns = (info: AppInfo) => `${1 / Object.keys(infos[0] ?? {}).length}%`;
-
 	const fixedWidth = '16%';
 
 	useEffect(() => {
@@ -116,6 +114,6 @@ export const Table = () => {
 	);
 };
 
-export function renderList(apps: (Deployment & Pm2AppInfo)[]) {
+export function renderList() {
 	render(<Table />);
 }

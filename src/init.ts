@@ -6,6 +6,8 @@ import { getRootCirrusPath } from './defaults';
 import { executeCommandOrCatch, writeConfig } from './util';
 import { deploy } from './deploy';
 import { ProjectSchema } from './types';
+import { getCirrusLogger } from './logger';
+import { runPlugins } from './plugins/plugin';
 
 export function createHook(projectName: string) {
 	return `
@@ -15,6 +17,7 @@ cirrus deploy ${projectName}`;
 }
 
 export async function initProject(projectName: string) {
+	getCirrusLogger().info(`initializing project ${projectName}`);
 	// TODO check that projectName isn't "logs", check that name doesnt contain spaces
 	// check that name isn't taken
 	const projects = getProjects();
@@ -23,6 +26,9 @@ export async function initProject(projectName: string) {
 
 	// write config file
 	const defaultConfig = await getDefaultProjectConfig(projectName);
+	getCirrusLogger().info(`writing default config for project ${projectName}`, {
+		config: defaultConfig
+	});
 	writeConfig(projectName, defaultConfig);
 
 	// validate config
@@ -40,17 +46,19 @@ export async function initProject(projectName: string) {
 	writeHook(projectName);
 
 	// run through plugins
-	// await corePlugins({ event: 'init', project: null });
+	await runPlugins({ event: 'init', project: defaultConfig });
 
 	// write .env file
+	getCirrusLogger().info(`writing .env file for ${projectName}`);
 	getEnvironmentFile(projectName);
 
-	// return getProjectConfig(projectName);
+	getCirrusLogger().info(`successfully initialized project ${projectName}`);
 	return defaultConfig;
 }
 
 export function writeHook(projectName: string) {
 	const hook = createHook(projectName);
+	getCirrusLogger().info(`writing post-receive hook for project ${projectName}`, { hook });
 	writeFileSync(join(getRootCirrusPath(), projectName, '.git', 'hooks', 'post-receive'), hook);
 	chmodSync(join(getRootCirrusPath(), projectName, '.git', 'hooks', 'post-receive'), '0777');
 }

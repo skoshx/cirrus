@@ -24,8 +24,8 @@ const init = {
 	},
 	handler: async (cli: Result<AnyFlags>) => {
 		const projectName = cli.input[1];
-		const project = await initProject(projectName);
-		renderList([]);
+		await initProject(projectName);
+		renderList();
 	}
 };
 
@@ -68,7 +68,7 @@ const deployCli = {
 	handler: async (cli: Result<AnyFlags>) => {
 		const projectName = cli.input[1];
 		const result = await deploy(projectName);
-		renderList([]);
+		renderList();
 	}
 };
 
@@ -78,8 +78,7 @@ const list = {
 	🌧 List - lists all Cirrus apps.
 	$ cirrus list`,
 	handler: async (cli: Result<AnyFlags>) => {
-		const deployments = await getDeployments();
-		renderList(deployments);
+		renderList();
 	}
 };
 
@@ -120,8 +119,7 @@ const cli = meow(
 		list                    List apps and status
 
 	Options
-		--loglevel              Log level 
-		                        ('emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug')
+		--loglevel              Log level ('emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug')
 	
 	Examples
 		$ cirrus init my-app
