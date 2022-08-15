@@ -47,6 +47,8 @@ const install = {
 		);
 		executeCommandOrCatch(`sudo apt update`);
 		executeCommandOrCatch(`sudo apt install caddy`);
+		executeCommandOrCatch(`npm install -g pnpm`);
+		executeCommandOrCatch(`npm install -g yarn`);
 		console.log(`🌧  All ready to fly above the cirrus clouds!`);
 	}
 };
@@ -54,7 +56,7 @@ const install = {
 const deployCli = {
 	description: 'Deploy your app',
 	helpText: `
-	🌧  Deploy - deployes your app according to your Cirrus config.
+	🌧  Deploy - deploys your app according to your Cirrus config.
 	$ cirrus deploy [options]
 	
 	Options
@@ -68,6 +70,7 @@ const deployCli = {
 	handler: async (cli: Result<AnyFlags>) => {
 		const projectName = cli.input[1];
 		const result = await deploy(projectName);
+		// const result = await runDeployment(projectName, cirrusDeployer);
 		renderList();
 	}
 };

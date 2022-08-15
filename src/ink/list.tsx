@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { render, Box, Text, useApp, useInput, useStdin } from 'ink';
 import { Spinner } from './spinner';
 import { cpu, memory, statusToColor, time } from '../formatting';
-import { Deployment, Pm2AppInfo } from '../types';
+import { Deployment, DeploymentInfo, Pm2AppInfo } from '../types';
 import { getDeployments } from '../project';
 
 export const Table = () => {
-	const [infos, setInfos] = useState<(Deployment & Pm2AppInfo)[]>();
+	const [infos, setInfos] = useState<DeploymentInfo[]>();
 
 	const { isRawModeSupported } = useStdin();
 

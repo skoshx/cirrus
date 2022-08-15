@@ -1,7 +1,7 @@
 // Utils
 import { deepStrictEqual } from 'assert';
 import { execaCommandSync, SyncOptions } from 'execa';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { getRootCirrusPath } from './defaults';
 import { getCirrusLogger } from './logger';
@@ -105,3 +105,16 @@ export function writeConfig(projectName: string, config: Project) {
 		mkdirSync(join(getRootCirrusPath(), 'config'), { recursive: true });
 	writeFileSync(join(getRootCirrusPath(), 'config', `${projectName}.json`), JSON.stringify(config));
 }
+
+export function getProjectPackageManager(projectName: string) {
+	const files = readdirSync(getWorkingDir(projectName), { withFileTypes: true })
+		.map((ent) => ent.name);
+	
+	if (files.indexOf('package-lock.json') !== -1) return 'npm';
+	if (files.indexOf('yarn.json') !== -1) return 'yarn';
+	if (files.indexOf('pnpm-lock.yaml') !== -1) return 'pnpm';
+}
+
+export const getInstallCommand = (projectName: string) => `${getProjectPackageManager(projectName)} install`;
+export const getBuildCommand = (projectName: string) => `${getProjectPackageManager(projectName)} run build`;
+export const getStartCommand = (projectName: string) => `${getProjectPackageManager(projectName)} run start`;

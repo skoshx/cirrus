@@ -5,8 +5,10 @@ export const DeploymentSchema = z.object({
 	path: z.string().default('.'),
 	name: z.string(), // TODO check no spaces
 	port: z.number(),
-	build: z.string().default('npm run build'),
-	start: z.string().default('npm run start'),
+	// build: z.string().default('npm run build'),
+	// start: z.string().default('npm run start'),
+	build: z.string().optional(),
+	start: z.string().optional(),
 	domain: z
 		.string()
 		.transform((domain: string) => {
@@ -47,6 +49,8 @@ export interface ProjectInfo {
 	remote: string;
 	ports: number[];
 }
+
+export type DeploymentInfo = Deployment & Pm2AppInfo;
 
 export interface NewAppLog {
 	deploymentName: string;

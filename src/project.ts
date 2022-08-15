@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { userInfo } from 'os';
 import publicIp from 'public-ip';
-import { Deployment, NewAppLog, Pm2AppInfo, Project, ProjectSchema } from './types';
+import { Deployment, DeploymentInfo, NewAppLog, Pm2AppInfo, Project, ProjectSchema } from './types';
 import {
 	createDirectory,
 	getAvailablePort,
@@ -43,14 +43,14 @@ export function getProjects(): Project[] {
 	return projects;
 }
 
-export async function getDeployments(): Promise<(Deployment & Pm2AppInfo)[]> {
+export async function getDeployments(): Promise<DeploymentInfo[]> {
 	const projects: Project[] = getProjects();
 	const deployments: Deployment[] = projects.reduce(
 		(prev: Deployment[], curr) => [...prev, ...curr.deployments],
 		[]
 	);
 
-	const appInfos: (Deployment & Pm2AppInfo)[] = [];
+	const appInfos: DeploymentInfo[] = [];
 
 	for (let i = 0; i < deployments.length; i++) {
 		const pm2AppInfo = await getPm2AppInfoNew(deployments[i].name);

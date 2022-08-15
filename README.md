@@ -110,8 +110,18 @@ Cirrus is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 - Tests
 
+	- Deployment tests (write abstractions w dep injection)
+	- Create project tests (write abstractions w dep injection)
+	- Plugin tests (write abstractions w dep injection)
   - get logs, get project, get deployments tests
   - test deploying with mock app
+
+- Make sure "npm start" script exists in package.json
+
+- Check that correct version 2.30+ of `git` is installed.
+	- Install command thing…
+
+- "Stream" command output so it doesn't feel as if the action is unresponsive
 
 - Logging
 

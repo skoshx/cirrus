@@ -3,17 +3,75 @@ import pm2, { Proc, StartOptions } from 'pm2';
 import { getRootCirrusPath } from './defaults';
 import { getCirrusEnvironment, getProjectEnvironment } from './env';
 import { getCirrusLogger } from './logger';
-import { runPlugins } from './plugins/plugin';
-import { getProjectConfig } from './project';
-import { Deployment, Project } from './types';
+import { PluginInterface, runPlugins } from './plugins/plugin';
+import { getDeployments, getProjectConfig, getProjects } from './project';
+import { Deployment, DeploymentInfo, Project, ProjectInfo } from './types';
 import {
 	executeCommandOrCatch,
+	getBuildCommand,
 	getErrorLogFilePath,
+	getInstallCommand,
 	getLogFilePath,
+	getProjectPackageManager,
+	getStartCommand,
 	getWorkingDir,
 	tryCatch,
 	tryCatchSync
 } from './util';
+
+export interface DeploymentInterface {
+	/* installDependencies(projectName: string, deployment: Deployment): Promise<boolean>; // fix this, this has to be streamed somehwo
+	build(projectName: string, deployment: Deployment): Promise<any>; */
+	startApp(projectName: string, deployment: Deployment): Promise<DeploymentInfo>;
+	runPlugins(projectName: string, plugins: PluginInterface[]): Promise<any>;
+	runCommand(command: string, projectName: string, deployment: Deployment): Promise<any>;
+}
+
+/* export const cirrusDeployer: DeploymentInterface = {
+	async startApp(projectName, deployment) {
+		// Install
+		this.runCommand(getInstallCommand(projectName), projectName, deployment);
+
+		// Build
+		this.runCommand(getBuildCommand(projectName), projectName, deployment);
+		
+		// Start
+		await startAppPm2New(projectName, deployment);
+		return (await getDeployments()).find((createdDeployment) => createdDeployment.name === deployment.name);
+	},
+	async runPlugins(projectName, plugins) {
+		plugins.forEach((plugin) => {
+			plugin.run({ event: 'deploy', project: getProjectConfig(projectName) });
+		});
+	},
+	async runCommand(command: string, projectName: string, deployment: Deployment) {
+		executeCommandOrCatch(command, {
+			cwd: join(getWorkingDir(projectName), deployment.path)
+		});
+	}
+} */
+
+/* export function runDeployment(projectName: string, deployer: DeploymentInterface) {
+	/* const project = getProjects().find((project) => project.deployments.find((deployment) => deployment.name === deploymentName));
+	if (!project) throw new Error(`Could not find a deployment with name ${deploymentName}. Type 'cirrus list' to list all deployments.`);
+	const config = getProjectConfig(projectName);
+
+	for (let i = 0; i < config.deployments.length; i++) {
+		const deployment = config.deployments[i];
+
+		// Install dependencies
+		deployer.installDependencies(projectName, deployment);
+
+		// Build
+		deployer.build(projectName, deployment);
+
+		// Start app
+		deployer.startApp(projectName, deployment);
+
+		// Run plugins
+		deployer.runPlugins(projectName, [caddyPlugin]);
+	}
+} */
 
 function getScriptAndArgs(startScript: string) {
 	const [script, ...args] = startScript.split(' ');
@@ -24,7 +82,7 @@ function startAppPm2New(projectName: string, deployment: Deployment): Promise<Pr
 	return new Promise((resolve, reject) => {
 		const processOptions: StartOptions = {
 			name: deployment.name,
-			...getScriptAndArgs(deployment.start ?? 'npm run start'),
+			...getScriptAndArgs(deployment.start ?? getStartCommand(projectName)),
 			min_uptime: 3_600_000,
 			max_restarts: 10,
 			output: getLogFilePath(deployment),
@@ -58,12 +116,11 @@ export async function deploy(projectName: string, config?: Project) {
 	for (let i = 0; i < config.deployments.length; i++) {
 		getCirrusLogger().info(`deploying ${config.deployments[i].name}`);
 		// run install
-		// TODO support for pnpm, yarn
-		executeCommandOrCatch('npm install', {
+		executeCommandOrCatch(getInstallCommand(projectName), {
 			cwd: join(getWorkingDir(projectName), config.deployments[i].path)
 		});
 		// run build command
-		executeCommandOrCatch(config.deployments[i].build, {
+		executeCommandOrCatch(config.deployments[i].build ?? getBuildCommand(projectName), {
 			cwd: join(getWorkingDir(projectName), config.deployments[i].path)
 		});
 		// run start command with PM2

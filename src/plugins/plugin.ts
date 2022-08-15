@@ -1,7 +1,10 @@
 // Cirrus core plugins - extend core Cirrus functionality with a simple API
 
+import { getLogger } from 'logpile';
 import { Project } from '../types';
+import { TryCatchResponse } from '../util';
 import { caddy } from './caddy';
+// import { caddy } from './caddy';
 
 export type CirrusPluginType = (opts: CirrusPluginOptions) => Promise<void> | void;
 
@@ -13,6 +16,12 @@ export type CirrusEvent = 'init' | 'deploy' | 'delete';
 export interface CirrusPluginOptions {
 	event: CirrusEvent;
 	project: Project;
+}
+
+export interface PluginInterface {
+	get pluginName(): string;
+	get logger(): ReturnType<typeof getLogger>;
+	run(opts: CirrusPluginOptions): Promise<TryCatchResponse<boolean>>;
 }
 
 // { plugins: ['caddy', 'postgres'] }
