@@ -107,14 +107,18 @@ export function writeConfig(projectName: string, config: Project) {
 }
 
 export function getProjectPackageManager(projectName: string) {
-	const files = readdirSync(getWorkingDir(projectName), { withFileTypes: true })
-		.map((ent) => ent.name);
-	
+	const files = readdirSync(getWorkingDir(projectName), { withFileTypes: true }).map(
+		(ent) => ent.name
+	);
+
 	if (files.indexOf('package-lock.json') !== -1) return 'npm';
 	if (files.indexOf('yarn.json') !== -1) return 'yarn';
 	if (files.indexOf('pnpm-lock.yaml') !== -1) return 'pnpm';
 }
 
-export const getInstallCommand = (projectName: string) => `${getProjectPackageManager(projectName)} install`;
-export const getBuildCommand = (projectName: string) => `${getProjectPackageManager(projectName)} run build`;
-export const getStartCommand = (projectName: string) => `${getProjectPackageManager(projectName)} run start`;
+export const getInstallCommand = (projectName: string) =>
+	`${getProjectPackageManager(projectName)} install`;
+export const getBuildCommand = (projectName: string) =>
+	`${getProjectPackageManager(projectName)} run build`;
+export const getStartCommand = (projectName: string) =>
+	`${getProjectPackageManager(projectName)} run start`;

@@ -37,8 +37,11 @@ test('deploy > deploy succeeded', async (t) => {
 });
 
 test('deploy > caddy file is correct', async (t) => {
-	const response = await deploy(t.context.testapp.name, withProject({ plugins: ['caddy'] }, {}, true));
-	console.log("RESPOSNE ");
+	const response = await deploy(
+		t.context.testapp.name,
+		withProject({ plugins: ['caddy'] }, {}, true)
+	);
+	console.log('RESPOSNE ');
 	console.log(response);
 	t.deepEqual(readFileSync(process.env.CADDYFILE_PATH as string).toString(), getCaddyfile());
 });
