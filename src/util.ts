@@ -1,6 +1,6 @@
 // Utils
 import { deepStrictEqual } from 'assert';
-import { execaCommandSync, SyncOptions } from 'execa';
+import { execa, execaCommand, execaCommandSync, SyncOptions } from 'execa';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { getRootCirrusPath } from './defaults';

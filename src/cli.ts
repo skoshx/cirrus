@@ -29,6 +29,26 @@ const init = {
 	}
 };
 
+export function installCaddy() {
+	executeCommandOrCatch(
+		'sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https'
+	);
+	const gpgKeyCommand = executeCommandOrCatch(`curl -1sLf "https://dl.cloudsmith.io/public/caddy/stable/gpg.key"`);
+	if (!gpgKeyCommand?.stdout) throw new Error(`Error occurred when installing Caddy. Retrieving the Caddy gpg key failed.`);
+
+	executeCommandOrCatch('sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg', { input: gpgKeyCommand?.stdout });
+
+	const sourceCommand = executeCommandOrCatch(
+		`curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt'`
+	);
+
+	if (!sourceCommand?.stdout) throw new Error(`Error occurred when installing Caddy. Installing Caddy debian source failed.`);
+	executeCommandOrCatch('sudo tee /etc/apt/sources.list.d/caddy-stable.list', { input: sourceCommand?.stdout });
+
+	executeCommandOrCatch(`sudo apt update`);
+	executeCommandOrCatch(`sudo apt install caddy`);
+}
+
 const install = {
 	description: 'Installs needed dependencies',
 	helpText: `
@@ -36,17 +56,11 @@ const install = {
 	$ cirrus install`,
 	handler: async (cli: Result<AnyFlags>) => {
 		executeCommandOrCatch('npm install -g pm2');
-		executeCommandOrCatch(
-			'sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https'
-		);
-		executeCommandOrCatch(
-			`curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg`
-		);
-		executeCommandOrCatch(
-			`curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list`
-		);
-		executeCommandOrCatch(`sudo apt update`);
-		executeCommandOrCatch(`sudo apt install caddy`);
+
+		// Install Caddyserver
+		installCaddy();
+
+		// Install package managers
 		executeCommandOrCatch(`npm install -g pnpm`);
 		executeCommandOrCatch(`npm install -g yarn`);
 		console.log(`🌧  All ready to fly above the cirrus clouds!`);
